@@ -1,0 +1,15 @@
+node_modules
+dist
+*.tgz
+.DS_Store
+
+# Reference libraries (not part of this project)
+alien.js/
+space.js/
+
+# Project docs not for repo
+CLAUDE.md
+alien-cli-mvp-spec.md
+
+# Claude Code local settings
+.claude/

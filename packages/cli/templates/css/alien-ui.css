@@ -1,0 +1,93 @@
+:root {
+    --bg-color: #060606;
+    --ui-panel-width: 100px;
+    --ui-font-family: 'Roboto Mono', monospace;
+    --ui-font-weight: 400;
+    --ui-font-size: 10px;
+    --ui-line-height: 15px;
+    --ui-letter-spacing: 0.04em;
+    --ui-number-letter-spacing: 0.5px;
+    --ui-title-font-size: 11px;
+    --ui-title-line-height: 18px;
+    --ui-title-letter-spacing: 1px;
+    --ui-secondary-font-size: 10px;
+    --ui-secondary-letter-spacing: 0.5px;
+    --ui-secondary-color: #868686;
+    --ui-name-font-family: 'Gothic A1', sans-serif;
+    --ui-name-font-weight: 500;
+    --ui-name-font-size: 13px;
+    --ui-name-line-height: 18px;
+    --ui-name-letter-spacing: 0.03em;
+    --ui-caption-font-family: 'Gothic A1', sans-serif;
+    --ui-caption-font-weight: 500;
+    --ui-caption-font-size: 12px;
+    --ui-caption-line-height: 16px;
+    --ui-caption-letter-spacing: 0.03em;
+    --ui-link-font-family: 'Gothic A1', sans-serif;
+    --ui-link-font-weight: 700;
+    --ui-link-font-size: 11px;
+    --ui-link-line-height: 18px;
+    --ui-link-letter-spacing: 0.03em;
+    --ui-info-font-family: 'Gothic A1', sans-serif;
+    --ui-info-font-weight: 700;
+    --ui-info-font-size: 10px;
+    --ui-info-line-height: 20px;
+    --ui-info-letter-spacing: 0.08em;
+    --ui-info-color: rgb(255 255 255 / 0.55);
+    --ui-color: #fff;
+    --ui-color-triplet: 255 255 255;
+    --ui-color-line-opacity: 0.5;
+    --ui-color-divider-line-opacity: 0.15;
+    --ui-color-graph-bottom-line-opacity: 0.15;
+    --ui-invert-light-color: #000;
+    --ui-invert-light-color-triplet: 0 0 0;
+    --ui-invert-dark-color: #fff;
+    --ui-invert-dark-color-triplet: 255 255 255;
+    --ui-color-line: rgb(var(--ui-color-triplet) / var(--ui-color-line-opacity));
+    --ui-color-divider-line: rgb(var(--ui-color-triplet) / var(--ui-color-divider-line-opacity));
+    --ui-color-graph-bottom-line: rgb(var(--ui-color-triplet) / var(--ui-color-graph-bottom-line-opacity));
+    --ui-color-range-1: #3b528b;
+    --ui-color-range-2: #21918c;
+    --ui-color-range-3: #5ec962;
+    --ui-color-range-4: #fde725;
+
+    /* Panel items */
+    --ui-panel-item-height: 20px;
+    --ui-panel-item-gap: 10px;
+    --ui-spacer-height: 7px;
+    --ui-divider-margin: 6px 0;
+    --ui-divider-height: 1px;
+
+    /* Slider */
+    --ui-slider-height: 25px;
+    --ui-slider-cursor: w-resize;
+    --ui-slider-line-height: 1px;
+
+    /* Toggle */
+    --ui-toggle-inactive-opacity: 0.15;
+
+    /* List */
+    --ui-list-toggle-inactive-opacity: 0.35;
+
+    /* Color picker */
+    --ui-color-picker-marker-stroke: #fff;
+    --ui-color-picker-marker-stroke-width: 2px;
+    --ui-color-picker-swatch-border: 1px solid var(--ui-color-divider-line);
+
+    /* Link */
+    --ui-link-height: 18px;
+    --ui-link-underline-height: 1px;
+
+    /* Graph/Meter margins */
+    --ui-graph-margin: 0 0 6px;
+    --ui-color-picker-margin: 6px 0 4px;
+    --ui-link-margin: 2px 0 0;
+}
+
+input, pre, .info, .target, .panel, .number, .name, .type, .primary, .secondary, .label, .marker {
+    font-family: var(--ui-font-family);
+    font-weight: var(--ui-font-weight);
+    font-size: var(--ui-font-size);
+    line-height: var(--ui-line-height);
+    letter-spacing: var(--ui-letter-spacing);
+}

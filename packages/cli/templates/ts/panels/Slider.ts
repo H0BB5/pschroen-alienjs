@@ -1,0 +1,225 @@
+import { Interface, Vector2, clamp } from '@hobbs/alien-core';
+
+export class Slider extends Interface {
+    name: string;
+    min: number;
+    max: number;
+    step: number;
+    precision: number;
+    value: number;
+    callback?: (value: number, target: Slider) => void;
+
+    range: number;
+    lastValue: number;
+
+    bounds: DOMRect | null;
+    origin: Vector2;
+    mouse: Vector2;
+    delta: Vector2;
+    lastMouse: Vector2;
+    lastOrigin: Vector2;
+
+    group?: Interface;
+    container!: Interface;
+    content!: Interface;
+    number!: Interface;
+    line!: Interface;
+
+    constructor({
+        name,
+        min = 0,
+        max = 1,
+        step = 0.01,
+        value = 0,
+        callback
+    }: {
+        name: string;
+        min?: number;
+        max?: number;
+        step?: number;
+        value?: number;
+        callback?: (value: number, target: Slider) => void;
+    }) {
+        super('.slider');
+
+        this.name = name;
+        this.min = min;
+        this.max = max;
+        this.step = step;
+        this.precision = this.getPrecision(this.step);
+        this.value = value;
+        this.callback = callback;
+
+        this.range = this.max - this.min;
+        this.value = this.getValue(this.value);
+        this.lastValue = this.value;
+
+        this.bounds = null;
+        this.origin = new Vector2();
+        this.mouse = new Vector2();
+        this.delta = new Vector2();
+        this.lastMouse = new Vector2();
+        this.lastOrigin = new Vector2();
+
+        this.init();
+        this.setValue(this.value);
+
+        this.addListeners();
+    }
+
+    init() {
+        this.container = new Interface('.container');
+        this.container.css({
+            height: 'var(--ui-slider-height)',
+            cursor: 'var(--ui-slider-cursor)'
+        });
+        this.add(this.container);
+
+        this.content = new Interface('.content');
+        this.content.css({
+            cssFloat: 'left',
+            marginRight: 'var(--ui-panel-item-gap)',
+            lineHeight: 'var(--ui-panel-item-height)',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap'
+        });
+        this.content.text(this.name);
+        this.container.add(this.content);
+
+        this.number = new Interface('.number');
+        this.number.css({
+            cssFloat: 'right',
+            fontVariantNumeric: 'tabular-nums',
+            lineHeight: 'var(--ui-panel-item-height)',
+            letterSpacing: 'var(--ui-number-letter-spacing)'
+        });
+        this.container.add(this.number);
+
+        this.line = new Interface('.line');
+        this.line.css({
+            clear: 'both',
+            height: 'var(--ui-slider-line-height)',
+            backgroundColor: 'var(--ui-color)',
+            transformOrigin: 'left center'
+        });
+        this.container.add(this.line);
+    }
+
+    addListeners() {
+        this.container.element!.addEventListener('pointerdown', this.onPointerDown as EventListener);
+    }
+
+    removeListeners() {
+        this.container.element!.removeEventListener('pointerdown', this.onPointerDown as EventListener);
+    }
+
+    getPrecision(value: number): number {
+        const string = String(value);
+        const delimiter = string.indexOf('.') + 1;
+
+        return !delimiter ? 0 : string.length - delimiter;
+    }
+
+    getValue(value: number): number {
+        return parseFloat(clamp(value, this.min, this.max).toFixed(this.precision));
+    }
+
+    // Event handlers
+
+    onPointerDown = (e: PointerEvent) => {
+        if (this.container.element!.contains(e.target as Node)) {
+            this.bounds = this.element!.getBoundingClientRect();
+            this.lastMouse.set(e.clientX, e.clientY);
+            this.lastOrigin.subVectors(this.lastMouse, this.bounds as any);
+            this.lastValue = this.value;
+
+            this.onPointerMove(e);
+
+            window.addEventListener('pointermove', this.onPointerMove as EventListener);
+            window.addEventListener('pointerup', this.onPointerUp as EventListener);
+        }
+    };
+
+    onPointerMove = ({ clientX, clientY }: PointerEvent) => {
+        const event = {
+            x: clientX,
+            y: clientY
+        };
+
+        this.mouse.copy(event as any);
+        this.delta.subVectors(this.mouse, this.lastMouse);
+        this.origin.addVectors(this.lastOrigin, this.delta);
+
+        let value = (this.min + (this.origin.x / this.bounds!.width) * this.range) - this.lastValue;
+        value = Math.floor(value / this.step);
+        this.value = this.getValue(this.lastValue + value * this.step);
+
+        this.update();
+    };
+
+    onPointerUp = () => {
+        window.removeEventListener('pointermove', this.onPointerMove as EventListener);
+        window.removeEventListener('pointerup', this.onPointerUp as EventListener);
+    };
+
+    // Public methods
+
+    hasContent(): boolean {
+        return !!this.group;
+    }
+
+    setContent(content: Interface) {
+        if (!this.group) {
+            this.group = new Interface('.group');
+            this.group.css({
+                position: 'relative'
+            });
+            this.add(this.group);
+        }
+
+        const oldGroup = this.group;
+
+        const newGroup = this.group.clone();
+        newGroup.add(content);
+
+        this.replace(oldGroup, newGroup);
+        this.group = newGroup;
+
+        oldGroup.destroy();
+    }
+
+    toggleContent(show: boolean) {
+        if (show) {
+            this.group!.show();
+        } else {
+            this.group!.hide();
+        }
+    }
+
+    setValue(value: number, notify: boolean = true) {
+        this.value = this.getValue(value);
+
+        this.update(notify);
+    }
+
+    update(notify: boolean = true) {
+        const scaleX = (this.value - this.min) / this.range;
+
+        this.line.css({ scaleX });
+        this.number.text(String(this.value));
+
+        if (notify) {
+            this.events.emit('update', { path: [], value: this.value, target: this });
+
+            if (this.callback) {
+                this.callback(this.value, this);
+            }
+        }
+    }
+
+    destroy() {
+        this.removeListeners();
+
+        return super.destroy();
+    }
+}

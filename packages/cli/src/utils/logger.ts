@@ -1,0 +1,32 @@
+import chalk from 'chalk';
+import ora from 'ora';
+
+export const logger = {
+    info(msg: string) {
+        console.log(chalk.cyan(msg));
+    },
+
+    success(msg: string) {
+        console.log(chalk.green(msg));
+    },
+
+    warn(msg: string) {
+        console.log(chalk.yellow(msg));
+    },
+
+    error(msg: string) {
+        console.log(chalk.red(msg));
+    },
+
+    log(msg: string) {
+        console.log(msg);
+    },
+
+    break() {
+        console.log('');
+    },
+
+    spinner(msg: string) {
+        return ora(msg).start();
+    }
+};

@@ -1,0 +1,24 @@
+{
+    "panel": {
+        "name": "Panel",
+        "description": "A panel container for various UI components with sliders, toggles, color pickers, graphs, and more",
+        "files": [
+            "panels/Panel.ts",
+            "panels/PanelItem.ts",
+            "panels/PanelLink.ts",
+            "panels/PanelThumbnail.ts",
+            "panels/PanelGraph.ts",
+            "panels/PanelMeter.ts",
+            "panels/List.ts",
+            "panels/ListToggle.ts",
+            "panels/ListSelect.ts",
+            "panels/Slider.ts",
+            "panels/Toggle.ts",
+            "panels/Content.ts",
+            "panels/ColorPicker.ts",
+            "panels/usePanel.ts"
+        ],
+        "coreDependencies": ["Interface", "Stage", "ticker", "EventEmitter", "Vector2", "Color", "clamp"],
+        "cssRequired": true
+    }
+}
