@@ -120,6 +120,17 @@ npm install
 npm run check
 ```
 
+### Local component catalog
+
+The standalone Next.js app in [`examples/catalog`](examples/catalog) renders every registry component in composed Alien.js/Space.js views.
+
+```sh
+npm install
+npm run example:dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Use `npm run example:sync` after changing a registry template; `npm run example:check` verifies the generated source, strict types, CLI health, and production build.
+
 The verification suite includes:
 
 - strict/no-implicit-any source and template gates;

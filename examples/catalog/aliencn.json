@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/H0BB5/pschroen-alienjs/main/packages/cli/schema.json",
+  "version": 1,
+  "framework": "next",
+  "language": "ts",
+  "paths": {
+    "components": "src/components/aliencn",
+    "utils": "src/lib/aliencn",
+    "styles": "src/app/aliencn.css"
+  },
+  "aliases": {
+    "components": "@/components/aliencn",
+    "utils": "@/lib/aliencn"
+  }
+}
