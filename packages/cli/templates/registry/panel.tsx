@@ -12,7 +12,6 @@ export type AlienPanelItem = ConstructorParameters<
 export interface AlienPanelHandle {
   setValue: (name: string, value: unknown) => void;
   setIndex: (name: string, index: number) => void;
-  invert: (inverted: boolean) => void;
 }
 
 export interface AlienPanelProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -44,6 +43,13 @@ export function AlienPanel({
     const host = hostRef.current;
     if (!host) return;
 
+    if (!document.documentElement.hasAttribute('data-aliencn-space')) {
+      errorRef.current?.(
+        new Error('AlienPanel requires data-aliencn-space on the root <html> element.')
+      );
+      return;
+    }
+
     let disposed = false;
     let disposePanel: (() => void) | undefined;
 
@@ -69,8 +75,7 @@ export function AlienPanel({
 
         readyRef.current?.({
           setValue: (name, value) => panel.setPanelValue(name, value),
-          setIndex: (name, index) => panel.setPanelIndex(name, index),
-          invert: (inverted) => panel.invert(inverted)
+          setIndex: (name, index) => panel.setPanelIndex(name, index)
         });
 
         disposePanel = () => {

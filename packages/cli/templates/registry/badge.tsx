@@ -16,7 +16,6 @@ export function Badge({
 }: BadgeProps): React.JSX.Element {
   return (
     <span
-      role="status"
       className={cn('aliencn-badge', `aliencn-badge--${tone}`, className)}
       {...props}
     >

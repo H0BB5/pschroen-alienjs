@@ -13,7 +13,7 @@ export interface ShaderCanvasProps extends Omit<React.HTMLAttributes<HTMLDivElem
 }
 
 export function ShaderCanvas({
-  color = '#8f7cff',
+  color = '#dfffee',
   speed = 0.5,
   intensity = 0.75,
   label = 'Animated abstract shader',
@@ -43,7 +43,8 @@ export function ShaderCanvas({
         const uniforms = {
           uTime: { value: 0 },
           uColor: { value: new three.Color(color) },
-          uIntensity: { value: intensity }
+          uIntensity: { value: intensity },
+          uResolution: { value: new three.Vector2(1, 1) }
         };
         const material = new three.ShaderMaterial({
           uniforms,
@@ -59,14 +60,62 @@ export function ShaderCanvas({
             uniform float uTime;
             uniform float uIntensity;
             uniform vec3 uColor;
+            uniform vec2 uResolution;
             varying vec2 vUv;
+
+            float hash21(vec2 p) {
+              p = fract(p * vec2(123.34, 456.21));
+              p += dot(p, p + 45.32);
+              return fract(p.x * p.y);
+            }
+
+            float noise21(vec2 p) {
+              vec2 i = floor(p);
+              vec2 f = fract(p);
+              f = f * f * (3.0 - 2.0 * f);
+              return mix(
+                mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
+                mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0)), f.x),
+                f.y
+              );
+            }
+
+            float fbm(vec2 p) {
+              float value = 0.0;
+              float amplitude = 0.5;
+              mat2 rotation = mat2(0.80, -0.60, 0.60, 0.80);
+              for (int i = 0; i < 4; i++) {
+                value += amplitude * noise21(p);
+                p = rotation * p * 2.03 + 13.7;
+                amplitude *= 0.5;
+              }
+              return value;
+            }
+
             void main() {
               vec2 p = vUv - 0.5;
-              float radius = length(p);
-              float wave = sin(radius * 22.0 - uTime * 2.4) * 0.5 + 0.5;
-              float glow = smoothstep(0.72, 0.0, radius);
-              float alpha = glow * mix(0.25, 1.0, wave) * uIntensity;
-              gl_FragColor = vec4(uColor * (0.65 + wave * 0.55), alpha);
+              p.x *= uResolution.x / max(uResolution.y, 1.0);
+
+              float time = uTime * 0.22;
+              float low = fbm(p * 2.4 + vec2(time, -time * 0.7));
+              vec2 warp = vec2(
+                fbm(p * 3.1 + low + vec2(2.7, time)),
+                fbm(p * 2.8 - low + vec2(-time, 7.4))
+              );
+              vec2 fieldPosition = p + (warp - 0.5) * 0.68;
+              float field = fbm(fieldPosition * 3.6 - vec2(time * 1.4, 0.0));
+              float filament = 1.0 - smoothstep(0.02, 0.26, abs(field - 0.52));
+              float veil = 1.0 - smoothstep(0.08, 0.92, length(fieldPosition));
+              float grain = hash21(gl_FragCoord.xy + floor(uTime * 4.0));
+
+              vec3 cyan = vec3(0.15, 0.82, 0.72);
+              vec3 ember = vec3(0.95, 0.18, 0.31);
+              vec3 spectral = mix(cyan, ember, smoothstep(0.25, 0.82, warp.x));
+              vec3 colorField = mix(uColor * 0.38, spectral, 0.34 + warp.y * 0.24);
+              colorField *= 0.5 + filament * 1.18 + grain * 0.055;
+
+              float alpha = veil * (0.08 + filament * 0.74 + field * 0.14) * uIntensity;
+              gl_FragColor = vec4(colorField, alpha);
             }
           `
         });
@@ -84,6 +133,7 @@ export function ShaderCanvas({
 
         const resize = (): void => {
           const bounds = host.getBoundingClientRect();
+          uniforms.uResolution.value.set(Math.max(1, bounds.width), Math.max(1, bounds.height));
           renderer.setSize(Math.max(1, bounds.width), Math.max(1, bounds.height), false);
           renderer.render(scene, camera);
         };
