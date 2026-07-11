@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/H0BB5/pschroen-alienjs/main/packages/cli/schema.json",
+  "title": "Aliencn configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "version", "framework", "language", "paths", "aliases"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "version": {
+      "const": 1
+    },
+    "framework": {
+      "enum": ["next", "vite", "react"]
+    },
+    "language": {
+      "enum": ["ts", "js"]
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components", "utils", "styles"],
+      "properties": {
+        "components": { "$ref": "#/$defs/projectPath" },
+        "utils": { "$ref": "#/$defs/projectPath" },
+        "styles": { "$ref": "#/$defs/projectPath" }
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components", "utils"],
+      "properties": {
+        "components": { "type": ["string", "null"], "minLength": 1 },
+        "utils": { "type": ["string", "null"], "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "projectPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "^[A-Za-z]:[\\/]" },
+          { "pattern": "(^|/)\.\.(/|$)" }
+        ]
+      }
+    }
+  }
+}

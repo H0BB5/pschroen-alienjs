@@ -1,0 +1,10 @@
+{
+  "name": "aliencn-next-fixture",
+  "private": true,
+  "packageManager": "npm@11.8.0",
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

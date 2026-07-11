@@ -1,0 +1,17 @@
+{
+  "name": "aliencn-vite-fixture",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.8.0",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@alienkitty/alien.js": "^1.2.0",
+    "@alienkitty/space.js": "^1.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.185.1",
+    "vite": "^7.0.0"
+  }
+}

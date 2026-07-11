@@ -1,81 +1,142 @@
-# alien-cn
+# Aliencn
 
-POC for a shadcn-style CLI that installs [space.js](https://github.com/alienkitty/space.js) UI components into Next.js projects. Instead of importing from a package, components get copied as source files that you own and can modify.
+Aliencn is a source-first component registry for React applications that want a restrained dashboard foundation plus the expressive UI and WebGL capabilities of [Space.js](https://github.com/alienkitty/space.js) and [Alien.js](https://github.com/alienkitty/alien.js).
 
-Currently only the Panel component family is implemented.
+The CLI copies components into your project, where you can review and own them. It does not fork the upstream runtime: Space.js, Alien.js, and Three.js remain normal package dependencies and the single source of truth for their APIs and types.
 
-## What the DX looks like
-
-> **Note:** Packages aren't published to npm. To try locally, clone the repo, build, and link:
->
-> ```sh
-> cd packages/core && npm link && cd ../cli && npx tsup && npm link
-> ```
->
-> Then in your Next.js project:
->
-> ```sh
-> npm link @hobbs/alien-core @hobbs/alien-cli
-> ```
-
-**1. Init a project** (`npx @hobbs/alien-cli init` if published)
+## Quick start
 
 ```sh
-alien init
+npx aliencn init --yes
+npx aliencn add button card input-field tabs
 ```
 
-Creates an `alien.config.json` and installs `@hobbs/alien-core` (lightweight runtime with Interface, tween, EventEmitter, Stage, etc).
-
-**2. Add a component**
-
-```sh
-alien add panel
-```
-
-This copies the full Panel component tree into your project — Panel, PanelItem, Slider, Toggle, List, ColorPicker, PanelGraph, PanelMeter, and all sub-components. TypeScript or JavaScript, based on your project config.
-
-It also drops in `alien-ui.css` with all the CSS custom properties for theming.
-
-**3. Use it**
+Import the generated stylesheet once from the location printed by `init`:
 
 ```tsx
-"use client";
+import './aliencn.css';
+```
 
-import { usePanel } from "@/components/alien-ui/panels/usePanel";
+Then import source-owned components from the detected alias:
 
-export default function Home() {
-  const containerRef = usePanel([
-    { type: "slider", name: "Speed", min: 0, max: 10, step: 0.1, value: 1 },
-    { type: "toggle", name: "Debug", value: false },
-    { type: "color", name: "Tint", value: "#ff0000" },
-    { type: "divider" },
-    { type: "graph", name: "FPS", noText: true },
-  ]);
+```tsx
+import { Button } from '@/components/aliencn/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/aliencn/card';
 
-  return <div ref={containerRef} />;
+export function Example() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Rendering pipeline</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button>Launch preview</Button>
+      </CardContent>
+    </Card>
+  );
 }
 ```
 
-The panel renders with the full space.js look and behavior — tweens, easing, the CSS variable theming system, all of it.
+JavaScript projects receive `.js`/`.jsx` files generated from the same canonical TypeScript templates. There is no second registry implementation to drift.
 
-**4. Customize**
+## Commands
 
-Everything is in your project as source. Override CSS variables for theming:
+```text
+aliencn init
+aliencn add button card
+aliencn add --all
+aliencn list
+aliencn diff button
+aliencn doctor
+```
 
-```css
-:root {
-  --ui-panel-width: 150px;
-  --ui-color: #0ff;
-  --ui-panel-item-height: 24px;
-  --ui-toggle-inactive-opacity: 0.25;
+Every project-mutating command accepts `--cwd`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, and `--skip-install`.
+
+Safety is deliberate:
+
+- paths cannot escape the target project;
+- identical files are skipped;
+- customized files are preserved by default;
+- `--yes` never implies overwrite;
+- writes are atomic;
+- package-manager commands do not use a shell;
+- library APIs throw typed errors instead of exiting the host process.
+
+See the [CLI reference](docs/cli.md) for every option.
+
+## Catalog
+
+Dashboard primitives:
+
+- button
+- card
+- badge and status
+- input-field
+- tabs
+- dialog
+- switch
+- skeleton
+- empty-state
+- banner
+
+Experiential primitives:
+
+- `panel`: SSR-safe Space.js panel host
+- `magnetic`: reduced-motion-aware Space.js interaction
+- `shader-canvas`: lifecycle-safe Three.js shader with Alien.js `Wobble`
+
+The visual hierarchy was informed by the Checkpoint dashboard component set, but the registry uses generic language, semantic CSS tokens, and no product-specific branding. See the [component catalog](docs/components.md).
+
+## Project configuration
+
+`aliencn init` writes a validated `aliencn.json`:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/H0BB5/pschroen-alienjs/main/packages/cli/schema.json",
+  "version": 1,
+  "framework": "next",
+  "language": "ts",
+  "paths": {
+    "components": "src/components/aliencn",
+    "utils": "src/lib/aliencn",
+    "styles": "src/app/aliencn.css"
+  },
+  "aliases": {
+    "components": "@/components/aliencn",
+    "utils": "@/lib/aliencn"
+  }
 }
 ```
 
-Or modify the component files directly, they're yours.
+Next.js, Vite React, generic React, TypeScript/JavaScript, npm, pnpm, Yarn, Bun, source roots, and `paths` aliases are detected. The schema is also packed as `aliencn/schema.json`.
 
-## Architecture
+## Development
 
-Monorepo with two packages:
+Requires Node 20.11 or newer.
 
-- **`packages/core`** — Minimal runtime: Interface (DOM wrapper + tween), EventEmitter, ticker, Stage, Vector2, Color, easing functions. This is the only install dependency.
-- **`packages/cli`** — The `add`/`init` commands and all component templates (TS + JS variants).
+```sh
+npm install
+npm run check
+```
+
+The verification suite includes:
+
+- strict/no-implicit-any source and template gates;
+- unit tests for detection, registry resolution, transforms, paths, installs, and writes;
+- a strict Next TypeScript generated fixture;
+- a Vite React JavaScript full-catalog bundle;
+- compatibility compilation against local typed Space.js/Alien.js worktrees when present;
+- built-CLI end-to-end tests;
+- npm pack manifest validation;
+- production-dependency audit in CI.
+
+Read [Architecture](docs/architecture.md) for package boundaries and invariants.
+
+## Attribution
+
+Aliencn integrates the official `@alienkitty/space.js` and `@alienkitty/alien.js` packages. Those projects are authored by Patrick Schroen and distributed under their own MIT licenses. Aliencn does not redistribute their source runtime.
+
+## License
+
+MIT
