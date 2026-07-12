@@ -75,7 +75,8 @@ Dashboard primitives:
 - input-field
 - tabs
 - dialog
-- switch
+- sheet
+- switch (default and system variants)
 - skeleton
 - empty-state
 - banner

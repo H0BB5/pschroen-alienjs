@@ -22,6 +22,7 @@ describe('registry graph', () => {
         'input-field',
         'tabs',
         'dialog',
+        'sheet',
         'switch',
         'skeleton',
         'empty-state',

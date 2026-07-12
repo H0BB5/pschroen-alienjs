@@ -33,6 +33,7 @@ try {
     'templates/registry/button.tsx',
     'templates/registry/panel.tsx',
     'templates/registry/shader-canvas.tsx',
+    'templates/registry/sheet.tsx',
     'templates/registry/space-types.d.ts'
   ];
   const missing = required.filter((file) => !paths.has(file));

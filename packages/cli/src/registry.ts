@@ -62,6 +62,11 @@ const dashboard: readonly RegistryItem[] = [
   dashboardItem('input-field', 'Input field', 'Labeled input with hint, error, and ARIA wiring.'),
   dashboardItem('tabs', 'Tabs', 'Keyboard-navigable tabs with controlled and uncontrolled modes.'),
   dashboardItem('dialog', 'Dialog', 'Native modal dialog with managed open state and accessible labels.'),
+  dashboardItem(
+    'sheet',
+    'Sheet',
+    'Edge-docked configuration surface with sections, rows, and a save-bar footer.'
+  ),
   dashboardItem('switch', 'Switch', 'Controlled accessible boolean switch with optional visible label.'),
   dashboardItem('skeleton', 'Skeleton', 'Reduced-motion-aware loading placeholder.'),
   dashboardItem('empty-state', 'Empty state', 'Centered empty-state composition with one primary action.'),
