@@ -152,6 +152,58 @@ describe('project operations', () => {
     expect((await doctor({ cwd: fixture })).healthy).toBe(true);
   });
 
+  it('installs the interim upstream type shims for TypeScript projects only', async () => {
+    const tsFixture = await copyFixture('next-ts');
+    fixtures.push(tsFixture);
+    await initProject({ cwd: tsFixture, yes: true, skipInstall: true });
+    const tsAdd = await addComponents(['panel', 'shader-canvas'], {
+      cwd: tsFixture,
+      yes: true,
+      skipInstall: true
+    });
+    expect(tsAdd.packages).toContain('@types/three@^0.185.1');
+    expect(
+      await readFile(path.join(tsFixture, 'src/components/aliencn/space-types.d.ts'), 'utf8')
+    ).toContain("declare module '@alienkitty/space.js'");
+    expect(
+      await readFile(path.join(tsFixture, 'src/components/aliencn/alien-types.d.ts'), 'utf8')
+    ).toContain("declare module '@alienkitty/alien.js/three'");
+
+    const jsFixture = await copyFixture('vite-js');
+    fixtures.push(jsFixture);
+    await initProject({ cwd: jsFixture, yes: true, skipInstall: true });
+    const jsAdd = await addComponents(['panel', 'shader-canvas'], {
+      cwd: jsFixture,
+      yes: true,
+      skipInstall: true
+    });
+    expect(jsAdd.packages).not.toContain('@types/three@^0.185.1');
+    expect(jsAdd.writes.created).not.toContainEqual(expect.stringContaining('types.d'));
+  });
+
+  it('plans without writing or installing under dry-run', async () => {
+    const fixture = await copyFixture('next-ts');
+    fixtures.push(fixture);
+    await initProject({ cwd: fixture, yes: true, skipInstall: true });
+
+    const dry = await addComponents(['button'], { cwd: fixture, dryRun: true });
+    expect(dry.plan).toBeDefined();
+    expect(dry.plan).toContainEqual(
+      expect.objectContaining({
+        action: 'create',
+        relativePath: 'src/components/aliencn/button.tsx'
+      })
+    );
+    expect(dry.writes).toEqual({ created: [], overwritten: [], skipped: [] });
+    await expect(
+      readFile(path.join(fixture, 'src/components/aliencn/button.tsx'), 'utf8')
+    ).rejects.toMatchObject({ code: 'ENOENT' });
+
+    const dryInit = await initProject({ cwd: fixture, overwrite: true, dryRun: true });
+    expect(dryInit.plan).toBeDefined();
+    expect((await readConfig(fixture))?.version).toBe(1);
+  });
+
   it('reports a missing registry foundation for an installed component', async () => {
     const fixture = await copyFixture('next-ts');
     fixtures.push(fixture);

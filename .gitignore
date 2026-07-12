@@ -13,3 +13,4 @@ alien-cli-mvp-spec.md
 
 # Claude Code local settings
 .claude/
+coverage

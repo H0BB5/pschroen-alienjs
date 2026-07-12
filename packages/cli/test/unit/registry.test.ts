@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  applicableItems,
   collectPackageDependencies,
   publicRegistryItems,
   resolveRegistryItems
@@ -39,9 +40,23 @@ describe('registry graph', () => {
     expect(dependencies).toEqual({
       '@alienkitty/space.js': '^1.2.0',
       '@alienkitty/alien.js': '^1.2.0',
+      '@types/three': '^0.185.1',
       three: '^0.185.1'
     });
     expect(Object.keys(dependencies).some((name) => name.startsWith('@hobbs/'))).toBe(false);
+  });
+
+  it('drops TypeScript-only shim items and their dependencies for JavaScript projects', () => {
+    const resolved = resolveRegistryItems(['panel', 'shader-canvas']);
+    const forJs = applicableItems(resolved, 'js');
+    expect(forJs.map((item) => item.name)).not.toContain('space-types');
+    expect(forJs.map((item) => item.name)).not.toContain('alien-types');
+    expect(collectPackageDependencies(forJs)).toEqual({
+      '@alienkitty/space.js': '^1.2.0',
+      '@alienkitty/alien.js': '^1.2.0',
+      three: '^0.185.1'
+    });
+    expect(applicableItems(resolved, 'ts')).toEqual(resolved);
   });
 
   it('reports unknown components with available choices', () => {

@@ -1,5 +1,5 @@
 import { AliencnError } from './errors.js';
-import type { RegistryItem } from './types.js';
+import type { Language, RegistryItem } from './types.js';
 
 const foundation: readonly RegistryItem[] = [
   {
@@ -28,6 +28,30 @@ const foundation: readonly RegistryItem[] = [
     files: [{ source: 'cn.ts', target: 'cn.ts', location: 'utils' }],
     registryDependencies: [],
     dependencies: {}
+  },
+  {
+    name: 'space-types',
+    title: 'Space.js ambient types',
+    description:
+      'Interim ambient declarations for @alienkitty/space.js until the published package ships its own.',
+    category: 'foundation',
+    hidden: true,
+    languages: ['ts'],
+    files: [{ source: 'space-types.d.ts', target: 'space-types.d.ts', location: 'components' }],
+    registryDependencies: [],
+    dependencies: {}
+  },
+  {
+    name: 'alien-types',
+    title: 'Alien.js ambient types',
+    description:
+      'Interim ambient declarations for @alienkitty/alien.js plus the @types/three package it builds on.',
+    category: 'foundation',
+    hidden: true,
+    languages: ['ts'],
+    files: [{ source: 'alien-types.d.ts', target: 'alien-types.d.ts', location: 'components' }],
+    registryDependencies: [],
+    dependencies: { '@types/three': '^0.185.1' }
   }
 ];
 
@@ -51,7 +75,7 @@ const experience: readonly RegistryItem[] = [
     description: 'SSR-safe React host for Space.js panel items with deterministic cleanup.',
     category: 'experience',
     files: [{ source: 'panel.tsx', target: 'panel.tsx', location: 'components' }],
-    registryDependencies: ['styles', 'cn'],
+    registryDependencies: ['styles', 'cn', 'space-types'],
     dependencies: { '@alienkitty/space.js': '^1.2.0' }
   },
   {
@@ -60,7 +84,7 @@ const experience: readonly RegistryItem[] = [
     description: 'Progressively enhanced Space.js magnetic motion with reduced-motion fallback.',
     category: 'experience',
     files: [{ source: 'magnetic.tsx', target: 'magnetic.tsx', location: 'components' }],
-    registryDependencies: ['styles', 'cn'],
+    registryDependencies: ['styles', 'cn', 'space-types'],
     dependencies: { '@alienkitty/space.js': '^1.2.0' }
   },
   {
@@ -69,7 +93,7 @@ const experience: readonly RegistryItem[] = [
     description: 'Responsive Alien.js and Three.js shader canvas with lifecycle-safe WebGL cleanup.',
     category: 'experience',
     files: [{ source: 'shader-canvas.tsx', target: 'shader-canvas.tsx', location: 'components' }],
-    registryDependencies: ['styles', 'cn'],
+    registryDependencies: ['styles', 'cn', 'alien-types'],
     dependencies: {
       '@alienkitty/alien.js': '^1.2.0',
       three: '^0.185.1'
@@ -122,6 +146,13 @@ export function resolveRegistryItems(requested: readonly string[], all = false):
 
   for (const name of names) visit(name);
   return resolved;
+}
+
+export function applicableItems(
+  items: readonly RegistryItem[],
+  language: Language
+): RegistryItem[] {
+  return items.filter((item) => !item.languages || item.languages.includes(language));
 }
 
 export function collectPackageDependencies(

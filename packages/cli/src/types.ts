@@ -5,7 +5,7 @@ export type RegistryCategory = 'foundation' | 'dashboard' | 'experience';
 export type RegistryLocation = 'components' | 'utils' | 'styles';
 
 export interface AliencnConfig {
-  $schema: string;
+  $schema?: string | undefined;
   version: 1;
   framework: Framework;
   language: Language;
@@ -20,13 +20,22 @@ export interface AliencnConfig {
   };
 }
 
+export interface AliasMapping {
+  /** Import prefix without the trailing wildcard, e.g. `@` for `"@/*"`. */
+  prefix: string;
+  /** Project-relative mapping target without the wildcard; `''` is the project root. */
+  target: string;
+}
+
 export interface ProjectInfo {
   root: string;
   framework: Framework;
   language: Language;
   packageManager: PackageManager;
   sourceRoot: string;
-  aliasPrefix: string | null;
+  /** True when a Next.js project has an App Router `app` directory. */
+  appRouter: boolean;
+  aliasMappings: readonly AliasMapping[];
   packageJson: PackageJson;
 }
 
@@ -55,6 +64,8 @@ export interface RegistryItem {
   registryDependencies: readonly string[];
   dependencies: Readonly<Record<string, string>>;
   hidden?: boolean;
+  /** Restricts an item to specific project languages; omitted means every language. */
+  languages?: readonly Language[];
 }
 
 export interface RenderedFile {
@@ -85,6 +96,8 @@ export interface InitOptions {
   yes?: boolean;
   overwrite?: boolean;
   skipInstall?: boolean;
+  dryRun?: boolean;
+  confirm?: ConfirmHandler;
 }
 
 export interface AddOptions {
@@ -94,6 +107,7 @@ export interface AddOptions {
   yes?: boolean;
   overwrite?: boolean;
   skipInstall?: boolean;
+  dryRun?: boolean;
   confirm?: ConfirmHandler;
 }
 

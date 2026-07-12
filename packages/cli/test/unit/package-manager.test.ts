@@ -31,4 +31,22 @@ describe('package manager commands', () => {
       )
     ).toEqual(['four@^4']);
   });
+
+  it('treats declared ranges that cannot satisfy a template requirement as missing', () => {
+    expect(
+      missingPackages({ dependencies: { three: '^0.150.0' } }, { three: '^0.185.1' })
+    ).toEqual(['three@^0.185.1']);
+    expect(
+      missingPackages({ dependencies: { three: '^0.185.0' } }, { three: '^0.185.1' })
+    ).toEqual([]);
+  });
+
+  it('trusts declarations that are not semver ranges', () => {
+    expect(
+      missingPackages(
+        { dependencies: { '@alienkitty/space.js': 'alienkitty/space.js#dev' } },
+        { '@alienkitty/space.js': '^1.2.0' }
+      )
+    ).toEqual([]);
+  });
 });

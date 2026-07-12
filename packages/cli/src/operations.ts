@@ -14,6 +14,7 @@ import { installPackages, missingPackages } from './package-manager.js';
 import { resolveWithinRoot } from './paths.js';
 import { createConfig, detectProject, readPackageJson } from './project.js';
 import {
+  applicableItems,
   collectPackageDependencies,
   getRegistryItem,
   publicRegistryItems,
@@ -43,13 +44,19 @@ export interface InitResult {
   configPath: string;
   writes: WriteSummary;
   packageManager: PackageManager;
+  /** Populated instead of `writes` when the operation ran with `dryRun`. */
+  plan?: PlannedFile[];
 }
 
 export interface AddResult {
   items: string[];
   packages: string[];
   writes: WriteSummary;
+  /** Populated instead of `writes` when the operation ran with `dryRun`. */
+  plan?: PlannedFile[];
 }
+
+const emptyWrites = (): WriteSummary => ({ created: [], overwritten: [], skipped: [] });
 
 export interface ListEntry {
   name: string;
@@ -91,9 +98,20 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
     options.overwrite ?? false,
     options.overwrite ?? false
   );
+
+  if (options.dryRun ?? false) {
+    return {
+      config,
+      configPath: getConfigPath(root),
+      writes: emptyWrites(),
+      packageManager: project.packageManager,
+      plan: planned
+    };
+  }
+
   const resolved = await resolveConflicts(
     planned,
-    defaultConfirm,
+    options.confirm ?? defaultConfirm,
     options.yes ?? false
   );
   const writes = await writePlannedFiles(resolved);
@@ -116,14 +134,24 @@ export async function addComponents(
   const items = resolveRegistryItems(names, options.all ?? false);
   const project = await detectProject(root);
   const packageJson = await readPackageJson(root);
-  const packages = missingPackages(packageJson, collectPackageDependencies(items));
+  const packages = missingPackages(
+    packageJson,
+    collectPackageDependencies(applicableItems(items, config.language))
+  );
+  const dryRun = options.dryRun ?? false;
 
-  if (!(options.skipInstall ?? false)) {
+  if (!dryRun && !(options.skipInstall ?? false)) {
     await installPackages(root, project.packageManager, packages);
   }
 
   const rendered = await renderRegistryItems(root, config, items, options.path);
   const planned = await planWrites(rendered, options.overwrite ?? false);
+  const publicNames = items.filter((item) => !item.hidden).map((item) => item.name);
+
+  if (dryRun) {
+    return { items: publicNames, packages, writes: emptyWrites(), plan: planned };
+  }
+
   const resolved = await resolveConflicts(
     planned,
     options.confirm ?? defaultConfirm,
@@ -132,7 +160,7 @@ export async function addComponents(
   const writes = await writePlannedFiles(resolved);
 
   return {
-    items: items.filter((item) => !item.hidden).map((item) => item.name),
+    items: publicNames,
     packages,
     writes
   };
@@ -291,7 +319,10 @@ export async function doctor(options: ListOptions = {}): Promise<DoctorReport> {
 
     if (packageJson && installed.length > 0) {
       const dependencies = collectPackageDependencies(
-        installed.map((entry) => getRegistryItem(entry.name))
+        applicableItems(
+          resolveRegistryItems(installed.map((entry) => entry.name)),
+          config.language
+        )
       );
       const missing = missingPackages(packageJson, dependencies);
       checks.push({

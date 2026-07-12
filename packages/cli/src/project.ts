@@ -4,9 +4,11 @@ import path from 'node:path';
 import ts from 'typescript';
 import { z } from 'zod';
 
+import { CONFIG_SCHEMA_URL } from './config.js';
 import { AliencnError } from './errors.js';
-import { normalizeProjectPath } from './paths.js';
+import { normalizeProjectPath, toPosix } from './paths.js';
 import type {
+  AliasMapping,
   AliencnConfig,
   Framework,
   Language,
@@ -26,17 +28,6 @@ const packageJsonSchema = z
   })
   .passthrough();
 
-const editorConfigSchema = z
-  .object({
-    compilerOptions: z
-      .object({
-        paths: z.record(z.array(z.string())).optional()
-      })
-      .passthrough()
-      .optional()
-  })
-  .passthrough();
-
 export async function detectProject(
   cwd: string,
   overrides: { framework?: Framework; language?: Language; path?: string } = {}
@@ -47,7 +38,10 @@ export async function detectProject(
   const language = overrides.language ?? (await detectLanguage(root));
   const packageManager = await detectPackageManager(root, packageJson);
   const sourceRoot = (await exists(path.join(root, 'src'))) ? 'src' : '';
-  const aliasPrefix = await detectAliasPrefix(root);
+  const appRouter =
+    framework === 'next' &&
+    (await exists(sourceRoot ? path.join(root, sourceRoot, 'app') : path.join(root, 'app')));
+  const aliasMappings = await detectAliasMappings(root);
 
   return {
     root,
@@ -55,7 +49,8 @@ export async function detectProject(
     language,
     packageManager,
     sourceRoot,
-    aliasPrefix,
+    appRouter,
+    aliasMappings,
     packageJson
   };
 }
@@ -68,22 +63,21 @@ export function createConfig(project: ProjectInfo, componentPath?: string): Alie
   );
   const utils = normalizeProjectPath(`${prefix}lib/aliencn`, 'Utility path');
   const styles = normalizeProjectPath(
-    project.framework === 'next'
+    project.framework === 'next' && project.appRouter
       ? `${prefix}app/aliencn.css`
       : `${prefix}styles/aliencn.css`,
     'Styles path'
   );
 
   return {
-    $schema:
-      'https://raw.githubusercontent.com/H0BB5/pschroen-alienjs/main/packages/cli/schema.json',
+    $schema: CONFIG_SCHEMA_URL,
     version: 1,
     framework: project.framework,
     language: project.language,
     paths: { components, utils, styles },
     aliases: {
-      components: aliasFor(project.aliasPrefix, components, project.sourceRoot),
-      utils: aliasFor(project.aliasPrefix, utils, project.sourceRoot)
+      components: aliasFor(project.aliasMappings, components),
+      utils: aliasFor(project.aliasMappings, utils)
     }
   };
 }
@@ -138,28 +132,56 @@ export async function detectLanguage(root: string): Promise<Language> {
   return 'js';
 }
 
+const lockfileCandidates: readonly [PackageManager, string[]][] = [
+  ['pnpm', ['pnpm-lock.yaml']],
+  ['yarn', ['yarn.lock']],
+  ['bun', ['bun.lock', 'bun.lockb']],
+  ['npm', ['package-lock.json']]
+];
+
 export async function detectPackageManager(
   root: string,
   packageJson: PackageJson
 ): Promise<PackageManager> {
-  const declared = packageJson.packageManager?.split('@')[0];
+  // Workspaces keep the lockfile and `packageManager` declaration at the
+  // repository root, so walk toward the filesystem root before defaulting.
+  let directory = root;
+  let manifest: PackageJson | null = packageJson;
+
+  for (;;) {
+    const declared = declaredPackageManager(manifest);
+    if (declared) return declared;
+
+    for (const [manager, files] of lockfileCandidates) {
+      for (const file of files) {
+        if (await exists(path.join(directory, file))) return manager;
+      }
+    }
+
+    const parent = path.dirname(directory);
+    if (parent === directory) return 'npm';
+    directory = parent;
+    manifest = await readOptionalPackageJson(directory);
+  }
+}
+
+function declaredPackageManager(manifest: PackageJson | null): PackageManager | null {
+  const declared = manifest?.packageManager?.split('@')[0];
   if (declared === 'npm' || declared === 'pnpm' || declared === 'yarn' || declared === 'bun') {
     return declared;
   }
+  return null;
+}
 
-  const candidates: readonly [PackageManager, string[]][] = [
-    ['pnpm', ['pnpm-lock.yaml']],
-    ['yarn', ['yarn.lock']],
-    ['bun', ['bun.lock', 'bun.lockb']],
-    ['npm', ['package-lock.json']]
-  ];
-
-  for (const [manager, files] of candidates) {
-    for (const file of files) {
-      if (await exists(path.join(root, file))) return manager;
-    }
+async function readOptionalPackageJson(directory: string): Promise<PackageJson | null> {
+  try {
+    const value: unknown = JSON.parse(
+      await readFile(path.join(directory, 'package.json'), 'utf8')
+    );
+    return packageJsonSchema.parse(value);
+  } catch {
+    return null;
   }
-  return 'npm';
 }
 
 export function allDependencies(packageJson: PackageJson): Record<string, string> {
@@ -170,32 +192,55 @@ export function allDependencies(packageJson: PackageJson): Record<string, string
   };
 }
 
-async function detectAliasPrefix(root: string): Promise<string | null> {
+async function detectAliasMappings(root: string): Promise<AliasMapping[]> {
   for (const file of ['tsconfig.json', 'jsconfig.json']) {
     const configPath = path.join(root, file);
-    try {
-      const source = await readFile(configPath, 'utf8');
-      const parsed = ts.parseConfigFileTextToJson(configPath, source);
-      if (parsed.error) continue;
-      const value: unknown = parsed.config;
-      const config = editorConfigSchema.parse(value);
-      const keys = Object.keys(config.compilerOptions?.paths ?? {});
-      const wildcard = keys.find((key) => key.endsWith('/*'));
-      if (wildcard) return wildcard.slice(0, -2);
-    } catch {
-      // Invalid or absent editor config should not prevent project detection.
+    if (!(await exists(configPath))) continue;
+
+    // getParsedCommandLineOfConfigFile resolves `extends` chains, including
+    // array form and package specifiers, which a raw JSONC parse would miss.
+    const parsed = ts.getParsedCommandLineOfConfigFile(configPath, undefined, {
+      fileExists: ts.sys.fileExists,
+      readFile: ts.sys.readFile,
+      readDirectory: ts.sys.readDirectory,
+      getCurrentDirectory: ts.sys.getCurrentDirectory,
+      useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+      onUnRecoverableConfigFileDiagnostic: () => undefined
+    });
+    const paths = parsed?.options.paths;
+    if (!paths) continue;
+
+    // Wildcard targets resolve against baseUrl when set, otherwise the
+    // directory of the config file that is being parsed.
+    const base = parsed.options.baseUrl ?? root;
+    const mappings: AliasMapping[] = [];
+    for (const [key, targets] of Object.entries(paths)) {
+      if (!key.endsWith('/*') || key.length <= 2) continue;
+      const prefix = key.slice(0, -2);
+      for (const value of targets) {
+        if (!value.endsWith('*')) continue;
+        const targetBase = value.slice(0, -1).replace(/\/+$/u, '');
+        const absolute = path.resolve(base, targetBase === '' ? '.' : targetBase);
+        const relative = path.relative(root, absolute);
+        if (relative.startsWith('..') || path.isAbsolute(relative)) continue;
+        mappings.push({ prefix, target: toPosix(relative) });
+        break;
+      }
+    }
+    if (mappings.length > 0) return mappings;
+  }
+  return [];
+}
+
+function aliasFor(mappings: readonly AliasMapping[], projectPath: string): string | null {
+  for (const mapping of mappings) {
+    if (mapping.target === '') return `${mapping.prefix}/${projectPath}`;
+    if (projectPath === mapping.target) return mapping.prefix;
+    if (projectPath.startsWith(`${mapping.target}/`)) {
+      return `${mapping.prefix}/${projectPath.slice(mapping.target.length + 1)}`;
     }
   }
   return null;
-}
-
-function aliasFor(aliasPrefix: string | null, projectPath: string, sourceRoot: string): string | null {
-  if (!aliasPrefix) return null;
-  const withoutSource =
-    sourceRoot && projectPath.startsWith(`${sourceRoot}/`)
-      ? projectPath.slice(sourceRoot.length + 1)
-      : projectPath;
-  return `${aliasPrefix}/${withoutSource}`.replace(/\/+/gu, '/');
 }
 
 async function exists(target: string): Promise<boolean> {

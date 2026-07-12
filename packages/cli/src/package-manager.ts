@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 
+import semver from 'semver';
+
 import { AliencnError } from './errors.js';
 import { allDependencies } from './project.js';
 import type { PackageJson, PackageManager } from './types.js';
@@ -32,7 +34,17 @@ export function missingPackages(
 ): string[] {
   const installed = allDependencies(packageJson);
   return Object.entries(requested)
-    .filter(([name]) => !(name in installed))
+    .filter(([name, range]) => {
+      const declared = installed[name];
+      if (declared === undefined) return true;
+      try {
+        return !semver.intersects(declared, range);
+      } catch {
+        // Git, file, workspace, and dist-tag specifiers cannot be compared
+        // against a semver range; trust the project's declaration.
+        return false;
+      }
+    })
     .map(([name, version]) => `${name}@${version}`);
 }
 

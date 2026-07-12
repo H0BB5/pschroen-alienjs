@@ -9,6 +9,7 @@
     "build": "npm run build --workspace aliencn",
     "typecheck": "npm run typecheck --workspace aliencn",
     "test": "npm run build && npm run test --workspace aliencn",
+    "test:coverage": "npm run build && npm run test:coverage --workspace aliencn",
     "test:unit": "npm run test:unit --workspace aliencn",
     "test:integration": "npm run test:integration --workspace aliencn",
     "test:e2e": "npm run build && npm run test:e2e --workspace aliencn",

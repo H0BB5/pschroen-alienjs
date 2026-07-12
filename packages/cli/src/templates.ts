@@ -29,6 +29,7 @@ export async function renderRegistryItems(
   const rendered: RenderedFile[] = [];
 
   for (const item of items) {
+    if (item.languages && !item.languages.includes(config.language)) continue;
     for (const file of item.files) {
       const target = outputTarget(config.language, file.target);
       const relativePath = targetPath(config, file, target, componentPathOverride);

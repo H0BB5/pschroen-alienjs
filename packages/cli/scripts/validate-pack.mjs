@@ -29,9 +29,11 @@ try {
     'package.json',
     'schema.json',
     'templates/registry/aliencn.css',
+    'templates/registry/alien-types.d.ts',
     'templates/registry/button.tsx',
     'templates/registry/panel.tsx',
-    'templates/registry/shader-canvas.tsx'
+    'templates/registry/shader-canvas.tsx',
+    'templates/registry/space-types.d.ts'
   ];
   const missing = required.filter((file) => !paths.has(file));
   if (missing.length > 0) {
@@ -57,6 +59,12 @@ try {
   );
 
   const installedRoot = path.join(consumer, 'node_modules', 'aliencn');
+  const installedSchema = JSON.parse(
+    await readFile(path.join(installedRoot, 'schema.json'), 'utf8')
+  );
+  if (installedSchema.title !== 'Aliencn configuration') {
+    throw new Error('The packed schema.json did not parse into the expected schema.');
+  }
   const installedBin = path.join(installedRoot, 'dist', 'bin.js');
   const version = execFileSync(process.execPath, [installedBin, '--version'], {
     cwd: consumer,

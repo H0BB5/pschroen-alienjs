@@ -8,7 +8,7 @@ All components use semantic `--aliencn-*` CSS tokens and plain class names. They
 | --- | --- | --- |
 | `button` | Primary, secondary, ghost, and danger actions with sizes and loading state | Native button, disabled and `aria-busy` states |
 | `card` | Surface with header, title, description, content, and footer | Semantic section root |
-| `badge` | Neutral or semantic status label | Status role and visible tone, not color alone |
+| `badge` | Neutral or semantic status label | Visible tone, not color alone; opt into a live `status` role with `live` for badges whose text updates in place |
 | `input-field` | Standalone input and integrated label/hint/error field | Automatic IDs, `aria-describedby`, `aria-invalid`, live errors |
 | `tabs` | Controlled or uncontrolled tab set | Arrow/Home/End keyboard navigation and complete tab relationships |
 | `dialog` | Controlled modal composition | Native `<dialog>`, labels, Escape handling, close control |
@@ -21,9 +21,13 @@ These patterns were adapted from the interaction and information hierarchy of th
 
 ## Experiential components
 
+In TypeScript projects these components install interim ambient declaration files (`space-types.d.ts`, `alien-types.d.ts`) because the published `@alienkitty` packages do not yet ship their own types. Delete those files once upstream releases include declarations.
+
 ### `panel`
 
 `AlienPanel` dynamically loads Space.js on the client, creates `Panel` and `PanelItem` instances, narrows update events to the upstream `PanelUpdate` type, reports load failures, and explicitly removes the root DOM element during cleanup. `onReady` exposes a narrow handle rather than leaking an untyped implementation object.
+
+`items` and `fast` are captured once on mount, so parent re-renders (including `onUpdate` state updates) never destroy and rebuild the panel. Update values after mount through the `onReady` handle's `setValue` and `setIndex`.
 
 ### `magnetic`
 
@@ -31,8 +35,8 @@ These patterns were adapted from the interaction and information hierarchy of th
 
 ### `shader-canvas`
 
-`ShaderCanvas` dynamically loads Three.js and `Wobble` from `@alienkitty/alien.js/three`. It owns renderer, geometry, material, observer, and animation-frame cleanup. The shader pauses entirely for reduced motion and provides an accessible image label plus a WebGL failure state.
+`ShaderCanvas` dynamically loads Three.js and `Wobble` from `@alienkitty/alien.js/three`. It owns renderer, geometry, material, observer, and animation-frame cleanup. The Wobble output feeds a `uWobble` shader uniform that drifts the glow center and wave phase organically. Changing `color`, `speed`, or `intensity` updates uniforms in place without recreating the WebGL context, and device-pixel-ratio changes are re-applied on resize. The shader pauses entirely for reduced motion and provides an accessible image label plus a WebGL failure state announced outside the image role.
 
 ## Theme tokens
 
-The foundation stylesheet defines light, dark, system-dark, status, focus, radius, typography, duration, and surface tokens. Set `data-aliencn-theme="light"` or `"dark"` on an ancestor to override the system preference. Space.js compatibility variables map back to those same tokens, including complete invert and panel variables.
+The foundation stylesheet defines light, dark, system-dark, status, focus, radius, typography, duration, and surface tokens. Set `data-aliencn-theme="dark"` on any ancestor to create a dark island; set `data-aliencn-theme="light"` on the root `<html>` element to opt out of system dark mode (a nested light island inside system dark is not supported). Space.js compatibility variables map back to those same tokens, including complete invert and panel variables.

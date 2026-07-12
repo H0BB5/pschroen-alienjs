@@ -1,4 +1,4 @@
-import { confirm } from '@inquirer/prompts';
+import { checkbox, confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { Command, CommanderError, Option } from 'commander';
 
@@ -11,18 +11,31 @@ import {
   initProject,
   listComponents
 } from './operations.js';
-import type { Framework, Language } from './types.js';
+import type { Framework, Language, PlannedFile } from './types.js';
+
+export interface SelectChoice {
+  name: string;
+  value: string;
+}
 
 export interface CliIO {
   stdout: (message: string) => void;
   stderr: (message: string) => void;
   confirm: (message: string) => Promise<boolean>;
+  /** Multi-select prompt; absent in non-interactive environments. */
+  select?: (message: string, choices: readonly SelectChoice[]) => Promise<string[]>;
 }
 
 const defaultIO: CliIO = {
   stdout: (message) => console.log(message),
   stderr: (message) => console.error(message),
-  confirm: (message) => confirm({ message, default: false })
+  confirm: (message) => confirm({ message, default: false }),
+  ...(process.stdin.isTTY
+    ? {
+        select: (message: string, choices: readonly SelectChoice[]) =>
+          checkbox({ message, choices: choices.map((choice) => ({ ...choice })) })
+      }
+    : {})
 };
 
 interface CommonCliOptions {
@@ -38,6 +51,7 @@ interface InitCliOptions extends CommonCliOptions {
   yes?: boolean;
   overwrite?: boolean;
   skipInstall?: boolean;
+  dryRun?: boolean;
 }
 
 interface AddCliOptions extends CommonCliOptions {
@@ -46,6 +60,7 @@ interface AddCliOptions extends CommonCliOptions {
   yes?: boolean;
   overwrite?: boolean;
   skipInstall?: boolean;
+  dryRun?: boolean;
 }
 
 interface DiffCliOptions extends CommonCliOptions {
@@ -79,12 +94,14 @@ export function createProgram(io: CliIO = defaultIO): Command {
     .option('-y, --yes', 'Accept safe defaults without prompting')
     .option('--overwrite', 'Replace config and restore canonical registry foundations')
     .option('--skip-install', 'Do not invoke the package manager')
+    .option('--dry-run', 'Report what would change without writing anything')
     .action(async (options: InitCliOptions) => {
       const language = languageOption(options);
-      if (!options.yes) {
+      if (!options.yes && !options.dryRun) {
         const accepted = await io.confirm('Initialize Aliencn in this project?');
         if (!accepted) {
           io.stdout(chalk.yellow('Initialization cancelled.'));
+          commandStatus = 1;
           return;
         }
       }
@@ -95,8 +112,16 @@ export function createProgram(io: CliIO = defaultIO): Command {
         ...(language ? { language } : {}),
         ...(options.yes !== undefined ? { yes: options.yes } : {}),
         ...(options.overwrite !== undefined ? { overwrite: options.overwrite } : {}),
-        ...(options.skipInstall !== undefined ? { skipInstall: options.skipInstall } : {})
+        ...(options.skipInstall !== undefined ? { skipInstall: options.skipInstall } : {}),
+        ...(options.dryRun !== undefined ? { dryRun: options.dryRun } : {}),
+        confirm: io.confirm
       });
+      if (result.plan) {
+        io.stdout(chalk.cyan(`Would create ${result.configPath}`));
+        printPlan(io, result.plan);
+        io.stdout(chalk.dim('Dry run: nothing was written.'));
+        return;
+      }
       io.stdout(chalk.green(`Created ${result.configPath}`));
       io.stdout(
         `Detected ${result.config.framework}, ${result.config.language}, and ${result.packageManager}.`
@@ -114,17 +139,49 @@ export function createProgram(io: CliIO = defaultIO): Command {
     .option('-y, --yes', 'Never prompt; preserve conflicting user files')
     .option('--overwrite', 'Overwrite conflicting component files')
     .option('--skip-install', 'Write files without installing missing packages')
+    .option('--dry-run', 'Report what would change without writing or installing')
     .action(async (components: string[], options: AddCliOptions) => {
-      const result = await addComponents(components, {
+      let names = components;
+      if (names.length === 0 && !options.all && io.select) {
+        const entries = await listComponents(options.cwd ? { cwd: options.cwd } : {});
+        names = await io.select(
+          'Select components to add',
+          entries.map((entry) => ({
+            name: `${entry.name} - ${entry.description}`,
+            value: entry.name
+          }))
+        );
+        if (names.length === 0) {
+          io.stdout(chalk.yellow('No components selected.'));
+          commandStatus = 1;
+          return;
+        }
+      }
+      const result = await addComponents(names, {
         ...(options.cwd ? { cwd: options.cwd } : {}),
         ...(options.path ? { path: options.path } : {}),
         ...(options.all !== undefined ? { all: options.all } : {}),
         ...(options.yes !== undefined ? { yes: options.yes } : {}),
         ...(options.overwrite !== undefined ? { overwrite: options.overwrite } : {}),
         ...(options.skipInstall !== undefined ? { skipInstall: options.skipInstall } : {}),
+        ...(options.dryRun !== undefined ? { dryRun: options.dryRun } : {}),
         confirm: io.confirm
       });
-      io.stdout(chalk.green(`Added ${result.items.join(', ')}.`));
+      if (result.plan) {
+        printPlan(io, result.plan);
+        if (result.packages.length > 0) {
+          io.stdout(chalk.yellow(`Would install: ${result.packages.join(' ')}`));
+        }
+        io.stdout(chalk.dim('Dry run: nothing was written or installed.'));
+        return;
+      }
+      const changed =
+        result.writes.created.length > 0 || result.writes.overwritten.length > 0;
+      io.stdout(
+        changed
+          ? chalk.green(`Added ${result.items.join(', ')}.`)
+          : chalk.dim(`${result.items.join(', ')}: already up to date.`)
+      );
       printWrites(io, result.writes);
       if (options.skipInstall && result.packages.length > 0) {
         io.stdout(chalk.yellow(`Install manually: ${result.packages.join(' ')}`));
@@ -248,4 +305,18 @@ function printWrites(
   for (const file of writes.created) io.stdout(chalk.green(`create    ${file}`));
   for (const file of writes.overwritten) io.stdout(chalk.yellow(`overwrite ${file}`));
   for (const file of writes.skipped) io.stdout(chalk.dim(`preserve  ${file}`));
+}
+
+function printPlan(io: CliIO, plan: readonly PlannedFile[]): void {
+  for (const file of plan) {
+    const label =
+      file.action === 'create'
+        ? chalk.green('would create   ')
+        : file.action === 'overwrite'
+          ? chalk.yellow('would overwrite')
+          : file.action === 'conflict'
+            ? chalk.red('conflict       ')
+            : chalk.dim('unchanged      ');
+    io.stdout(`${label} ${file.relativePath}`);
+  }
 }

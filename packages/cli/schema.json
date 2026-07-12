@@ -4,7 +4,7 @@
   "title": "Aliencn configuration",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "version", "framework", "language", "paths", "aliases"],
+  "required": ["version", "framework", "language", "paths", "aliases"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -47,7 +47,7 @@
         "anyOf": [
           { "pattern": "^/" },
           { "pattern": "^[A-Za-z]:[\\/]" },
-          { "pattern": "(^|/)\.\.(/|$)" }
+          { "pattern": "(^|/)\\.\\.(/|$)" }
         ]
       }
     }

@@ -109,13 +109,16 @@ describe.runIf(hasLocalTypedUpstreams)('local typed upstream compatibility', () 
   it('compiles experiential templates against the actual Space.js and Alien.js declarations', async () => {
     const fixture = await copyFixture('next-ts');
     fixtures.push(fixture);
-    await rm(path.join(fixture, 'upstream.d.ts'));
     await initProject({ cwd: fixture, yes: true, skipInstall: true });
     await addComponents(['panel', 'magnetic', 'shader-canvas'], {
       cwd: fixture,
       yes: true,
       skipInstall: true
     });
+    // Simulate the post-upstream world: once the real packages ship types,
+    // consumers delete the interim ambient shims so they cannot shadow them.
+    await rm(path.join(fixture, 'src', 'components', 'aliencn', 'space-types.d.ts'));
+    await rm(path.join(fixture, 'src', 'components', 'aliencn', 'alien-types.d.ts'));
 
     const config = {
       compilerOptions: {

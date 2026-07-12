@@ -26,7 +26,7 @@ const projectPathSchema = z.string().min(1).transform((value, context) => {
 
 export const aliencnConfigSchema = z
   .object({
-    $schema: z.string().url(),
+    $schema: z.string().url().optional(),
     version: z.literal(1),
     framework: z.enum(['next', 'vite', 'react']),
     language: z.enum(['ts', 'js']),

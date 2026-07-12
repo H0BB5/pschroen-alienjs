@@ -50,7 +50,7 @@ aliencn diff button
 aliencn doctor
 ```
 
-Every project-mutating command accepts `--cwd`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, and `--skip-install`.
+Every project-mutating command accepts `--cwd` and `--dry-run`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, and `--skip-install`, and offers an interactive picker when run with no names in a terminal.
 
 Safety is deliberate:
 
@@ -58,6 +58,7 @@ Safety is deliberate:
 - identical files are skipped;
 - customized files are preserved by default;
 - `--yes` never implies overwrite;
+- `--dry-run` reports the full plan without writing or installing;
 - writes are atomic;
 - package-manager commands do not use a shell;
 - library APIs throw typed errors instead of exiting the host process.
@@ -70,7 +71,7 @@ Dashboard primitives:
 
 - button
 - card
-- badge and status
+- badge
 - input-field
 - tabs
 - dialog
@@ -83,7 +84,9 @@ Experiential primitives:
 
 - `panel`: SSR-safe Space.js panel host
 - `magnetic`: reduced-motion-aware Space.js interaction
-- `shader-canvas`: lifecycle-safe Three.js shader with Alien.js `Wobble`
+- `shader-canvas`: lifecycle-safe Three.js shader with Alien.js `Wobble` motion
+
+TypeScript projects also receive interim ambient declarations for the `@alienkitty` packages (which do not ship types on npm yet); delete those files once upstream releases include declarations.
 
 The visual hierarchy was informed by the Checkpoint dashboard component set, but the registry uses generic language, semantic CSS tokens, and no product-specific branding. See the [component catalog](docs/components.md).
 
