@@ -4,17 +4,25 @@ import * as React from 'react';
 
 import { cn } from '@/lib/aliencn/cn';
 
+export type SwitchVariant = 'default' | 'system';
+
 export interface SwitchProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'onClick'> {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label?: React.ReactNode;
+  /**
+   * `default` is the standard settings toggle. `system` is the square
+   * instrument treatment for telemetry racks and dev surfaces.
+   */
+  variant?: SwitchVariant;
 }
 
 export function Switch({
   checked,
   onCheckedChange,
   label,
+  variant = 'default',
   className,
   disabled,
   ...props
@@ -26,13 +34,13 @@ export function Switch({
       role="switch"
       aria-checked={checked}
       disabled={disabled}
-      className={cn('aliencn-switch', className)}
+      className={cn('aliencn-switch', `aliencn-switch--${variant}`, className)}
       onClick={() => onCheckedChange(!checked)}
     >
       <span className="aliencn-switch__track" aria-hidden="true">
         <span className="aliencn-switch__thumb" />
       </span>
-      {label ? <span>{label}</span> : null}
+      {label ? <span className="aliencn-switch__label">{label}</span> : null}
     </button>
   );
 }
