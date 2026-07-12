@@ -49,3 +49,5 @@ In TypeScript projects these components install interim ambient declaration file
 ## Theme tokens
 
 The foundation stylesheet defines dark-default and explicit light themes, spectral status, focus, square geometry, typography, duration, grid, and optical-surface tokens. The opt-in `data-aliencn-space` root scope maps Space.js compatibility variables back to those same tokens, including its original compact typography, Viridis graph range, invert, and panel variables.
+
+Theme presets (`aliencn init --theme carbon|paper`) and custom token stylesheets (`--theme ./tokens.css`) are written to `aliencn-theme.css` and imported after the foundation, so they override default tokens while explicit `data-aliencn-theme` attributes keep working.

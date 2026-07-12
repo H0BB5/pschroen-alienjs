@@ -15,7 +15,13 @@ export interface AlienPanelHandle {
 }
 
 export interface AlienPanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Captured once when the panel mounts; later changes are ignored so parent
+   * re-renders never rebuild the panel. Use the `onReady` handle to update
+   * values and indexes imperatively.
+   */
   items: readonly AlienPanelItem[];
+  /** Captured once when the panel mounts, like `items`. */
   fast?: boolean;
   onUpdate?: (event: PanelUpdate) => void;
   onReady?: (handle: AlienPanelHandle) => void;
@@ -32,6 +38,8 @@ export function AlienPanel({
   ...props
 }: AlienPanelProps): React.JSX.Element {
   const hostRef = React.useRef<HTMLDivElement>(null);
+  const initialItemsRef = React.useRef(items);
+  const initialFastRef = React.useRef(fast);
   const updateRef = React.useRef(onUpdate);
   const readyRef = React.useRef(onReady);
   const errorRef = React.useRef(onLoadError);
@@ -69,9 +77,9 @@ export function AlienPanel({
         };
         panel.events.on('update', handleUpdate);
 
-        for (const item of items) panel.add(new PanelItem(item));
+        for (const item of initialItemsRef.current) panel.add(new PanelItem(item));
         host.appendChild(element);
-        panel.animateIn(fast);
+        panel.animateIn(initialFastRef.current);
 
         readyRef.current?.({
           setValue: (name, value) => panel.setPanelValue(name, value),
@@ -96,7 +104,7 @@ export function AlienPanel({
       disposed = true;
       disposePanel?.();
     };
-  }, [fast, items]);
+  }, []);
 
   return <div {...props} ref={hostRef} className={cn('aliencn-panel-host', className)} />;
 }

@@ -46,6 +46,7 @@ interface CommonCliOptions {
 interface InitCliOptions extends CommonCliOptions {
   path?: string;
   framework?: string;
+  theme?: string;
   typescript?: boolean;
   javascript?: boolean;
   yes?: boolean;
@@ -61,6 +62,7 @@ interface AddCliOptions extends CommonCliOptions {
   overwrite?: boolean;
   skipInstall?: boolean;
   dryRun?: boolean;
+  set?: string[];
 }
 
 interface DiffCliOptions extends CommonCliOptions {
@@ -89,6 +91,7 @@ export function createProgram(io: CliIO = defaultIO): Command {
     .addOption(
       new Option('--framework <framework>', 'Framework override').choices(['next', 'vite', 'react'])
     )
+    .option('--theme <name|path>', 'Apply a token theme preset (carbon, paper) or a custom .css file')
     .option('--typescript', 'Force TypeScript output')
     .option('--javascript', 'Force JavaScript output')
     .option('-y, --yes', 'Accept safe defaults without prompting')
@@ -109,6 +112,7 @@ export function createProgram(io: CliIO = defaultIO): Command {
         ...(options.cwd ? { cwd: options.cwd } : {}),
         ...(options.path ? { path: options.path } : {}),
         ...(options.framework ? { framework: parseFramework(options.framework) } : {}),
+        ...(options.theme ? { theme: options.theme } : {}),
         ...(language ? { language } : {}),
         ...(options.yes !== undefined ? { yes: options.yes } : {}),
         ...(options.overwrite !== undefined ? { overwrite: options.overwrite } : {}),
@@ -127,6 +131,9 @@ export function createProgram(io: CliIO = defaultIO): Command {
         `Detected ${result.config.framework}, ${result.config.language}, and ${result.packageManager}.`
       );
       io.stdout(`Import ${result.config.paths.styles} once from your application entry point.`);
+      if (result.themePath) {
+        io.stdout(`Import ${result.themePath} after the foundation stylesheet.`);
+      }
     });
 
   program
@@ -140,6 +147,12 @@ export function createProgram(io: CliIO = defaultIO): Command {
     .option('--overwrite', 'Overwrite conflicting component files')
     .option('--skip-install', 'Write files without installing missing packages')
     .option('--dry-run', 'Report what would change without writing or installing')
+    .option(
+      '--set <option=value>',
+      'Set an install-time component option (repeatable), e.g. --set variant=system',
+      (value: string, previous: string[]) => [...previous, value],
+      []
+    )
     .action(async (components: string[], options: AddCliOptions) => {
       let names = components;
       if (names.length === 0 && !options.all && io.select) {
@@ -165,6 +178,7 @@ export function createProgram(io: CliIO = defaultIO): Command {
         ...(options.overwrite !== undefined ? { overwrite: options.overwrite } : {}),
         ...(options.skipInstall !== undefined ? { skipInstall: options.skipInstall } : {}),
         ...(options.dryRun !== undefined ? { dryRun: options.dryRun } : {}),
+        ...(options.set && options.set.length > 0 ? { set: parseSetOptions(options.set) } : {}),
         confirm: io.confirm
       });
       if (result.plan) {
@@ -291,6 +305,23 @@ function languageOption(options: InitCliOptions): Language | undefined {
   if (options.typescript) return 'ts';
   if (options.javascript) return 'js';
   return undefined;
+}
+
+function parseSetOptions(entries: readonly string[]): Record<string, string> {
+  const parsed: Record<string, string> = {};
+  for (const entry of entries) {
+    const separator = entry.indexOf('=');
+    const name = separator > 0 ? entry.slice(0, separator).trim() : '';
+    const value = separator > 0 ? entry.slice(separator + 1).trim() : '';
+    if (!name || !value) {
+      throw new AliencnError(
+        'INVALID_ARGUMENT',
+        `Invalid --set entry "${entry}". Use --set <option>=<value>.`
+      );
+    }
+    parsed[name] = value;
+  }
+  return parsed;
 }
 
 function parseFramework(value: string): Framework {

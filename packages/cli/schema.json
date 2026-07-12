@@ -19,6 +19,10 @@
     "language": {
       "enum": ["ts", "js"]
     },
+    "theme": {
+      "type": "string",
+      "minLength": 1
+    },
     "paths": {
       "type": "object",
       "additionalProperties": false,

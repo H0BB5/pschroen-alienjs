@@ -9,6 +9,8 @@ export interface AliencnConfig {
   version: 1;
   framework: Framework;
   language: Language;
+  /** Token theme applied after the foundation stylesheet: a packaged preset name or the original custom stylesheet path. */
+  theme?: string | undefined;
   paths: {
     components: string;
     utils: string;
@@ -55,6 +57,13 @@ export interface RegistryFile {
   preserve?: boolean;
 }
 
+export interface RegistryOption {
+  /** Option key used with `--set <name>=<value>` and `{{option:<name>}}` in templates. */
+  name: string;
+  values: readonly string[];
+  default: string;
+}
+
 export interface RegistryItem {
   name: string;
   title: string;
@@ -66,6 +75,8 @@ export interface RegistryItem {
   hidden?: boolean;
   /** Restricts an item to specific project languages; omitted means every language. */
   languages?: readonly Language[];
+  /** Install-time template options with enumerated values. */
+  options?: readonly RegistryOption[];
 }
 
 export interface RenderedFile {
@@ -93,6 +104,7 @@ export interface InitOptions {
   path?: string;
   framework?: Framework;
   language?: Language;
+  theme?: string;
   yes?: boolean;
   overwrite?: boolean;
   skipInstall?: boolean;
@@ -108,6 +120,8 @@ export interface AddOptions {
   overwrite?: boolean;
   skipInstall?: boolean;
   dryRun?: boolean;
+  /** Install-time option overrides, keyed by registry option name. */
+  set?: Readonly<Record<string, string>>;
   confirm?: ConfirmHandler;
 }
 

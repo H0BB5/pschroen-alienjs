@@ -52,7 +52,7 @@ export function InputField({
       <div
         id={messageId}
         className={cn('aliencn-field__meta', Boolean(error) && 'aliencn-field__meta--error')}
-        aria-live={error ? 'polite' : undefined}
+        aria-live="polite"
       >
         {message}
       </div>

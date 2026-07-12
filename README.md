@@ -50,7 +50,9 @@ aliencn diff button
 aliencn doctor
 ```
 
-Every project-mutating command accepts `--cwd` and `--dry-run`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, and `--skip-install`, and offers an interactive picker when run with no names in a terminal.
+Every project-mutating command accepts `--cwd` and `--dry-run`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, `--skip-install`, and install-time component options via `--set` (for example `aliencn add switch --set variant=system`), and offers an interactive picker when run with no names in a terminal.
+
+Theming: `aliencn init --theme carbon` or `--theme paper` applies a packaged token preset, and `--theme ./your-tokens.css` bridges an existing design system; the theme lands in a sibling `aliencn-theme.css` you own.
 
 Safety is deliberate:
 

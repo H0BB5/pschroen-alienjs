@@ -20,7 +20,7 @@ import {
   publicRegistryItems,
   resolveRegistryItems
 } from './registry.js';
-import { renderRegistryItems } from './templates.js';
+import { renderRegistryItems, resolveThemeContent, THEME_FILE } from './templates.js';
 import type {
   AddOptions,
   AliencnConfig,
@@ -34,6 +34,7 @@ import type {
   PackageJson,
   RegistryCategory,
   RegistryItem,
+  RenderedFile,
   WriteSummary
 } from './types.js';
 
@@ -44,6 +45,8 @@ export interface InitResult {
   configPath: string;
   writes: WriteSummary;
   packageManager: PackageManager;
+  /** Project-relative path of the written theme stylesheet, when a theme is active. */
+  themePath?: string;
   /** Populated instead of `writes` when the operation ran with `dryRun`. */
   plan?: PlannedFile[];
 }
@@ -75,13 +78,41 @@ export interface DiffEntry {
 
 export async function initProject(options: InitOptions = {}): Promise<InitResult> {
   const root = path.resolve(options.cwd ?? process.cwd());
-  const existing = options.overwrite ? null : await readConfig(root);
+  const existing = options.overwrite ? await readConfigTolerant(root) : await readConfig(root);
+
   if (existing && !options.overwrite) {
+    if (!options.theme) {
+      return {
+        config: existing,
+        configPath: getConfigPath(root),
+        writes: { created: [], overwritten: [], skipped: [CONFIG_FILE] },
+        packageManager: (await detectProject(root)).packageManager
+      };
+    }
+
+    // Theme-only update: an explicit --theme on an initialized project
+    // replaces the theme stylesheet without touching anything else.
+    const config: AliencnConfig = { ...existing, theme: options.theme };
+    const themed = await themeRenderedFile(root, config, options.theme);
+    const planned = await planWrites([themed], true, true);
+    if (options.dryRun ?? false) {
+      return {
+        config,
+        configPath: getConfigPath(root),
+        writes: emptyWrites(),
+        packageManager: (await detectProject(root)).packageManager,
+        themePath: themed.relativePath,
+        plan: planned
+      };
+    }
+    const writes = await writePlannedFiles(planned);
+    await writeConfig(root, config);
     return {
-      config: existing,
+      config,
       configPath: getConfigPath(root),
-      writes: { created: [], overwritten: [], skipped: [CONFIG_FILE] },
-      packageManager: (await detectProject(root)).packageManager
+      writes,
+      packageManager: (await detectProject(root)).packageManager,
+      themePath: themed.relativePath
     };
   }
 
@@ -91,8 +122,13 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
     ...(options.path ? { path: options.path } : {})
   });
   const config = createConfig(project, options.path);
+  const theme = options.theme ?? existing?.theme;
+  if (theme) config.theme = theme;
+
   const foundation = resolveRegistryItems(['styles']);
   const rendered = await renderRegistryItems(root, config, foundation);
+  const themed = theme ? await themeRenderedFile(root, config, theme) : null;
+  if (themed) rendered.push(themed);
   const planned = await planWrites(
     rendered,
     options.overwrite ?? false,
@@ -105,6 +141,7 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
       configPath: getConfigPath(root),
       writes: emptyWrites(),
       packageManager: project.packageManager,
+      ...(themed ? { themePath: themed.relativePath } : {}),
       plan: planned
     };
   }
@@ -121,7 +158,36 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
     config,
     configPath: getConfigPath(root),
     writes,
-    packageManager: project.packageManager
+    packageManager: project.packageManager,
+    ...(themed ? { themePath: themed.relativePath } : {})
+  };
+}
+
+async function readConfigTolerant(root: string): Promise<AliencnConfig | null> {
+  try {
+    return await readConfig(root);
+  } catch {
+    // An unreadable or invalid config is being overwritten anyway.
+    return null;
+  }
+}
+
+function themePath(config: AliencnConfig): string {
+  return path.posix.join(path.posix.dirname(config.paths.styles), THEME_FILE);
+}
+
+async function themeRenderedFile(
+  root: string,
+  config: AliencnConfig,
+  theme: string
+): Promise<RenderedFile> {
+  const relativePath = themePath(config);
+  return {
+    item: 'theme',
+    relativePath,
+    absolutePath: resolveWithinRoot(root, relativePath, 'Theme path'),
+    content: await resolveThemeContent(theme, root),
+    preserve: true
   };
 }
 
@@ -132,6 +198,19 @@ export async function addComponents(
   const root = path.resolve(options.cwd ?? process.cwd());
   const config = await requireConfig(root);
   const items = resolveRegistryItems(names, options.all ?? false);
+  const setOverrides = options.set ?? {};
+  const declaredOptions = new Set(
+    items.flatMap((item) => (item.options ?? []).map((option) => option.name))
+  );
+  for (const key of Object.keys(setOverrides)) {
+    if (!declaredOptions.has(key)) {
+      throw new AliencnError(
+        'INVALID_ARGUMENT',
+        `Unknown option "${key}". The requested components declare: ${[...declaredOptions].join(', ') || 'none'}.`
+      );
+    }
+  }
+
   const project = await detectProject(root);
   const packageJson = await readPackageJson(root);
   const packages = missingPackages(
@@ -144,7 +223,7 @@ export async function addComponents(
     await installPackages(root, project.packageManager, packages);
   }
 
-  const rendered = await renderRegistryItems(root, config, items, options.path);
+  const rendered = await renderRegistryItems(root, config, items, options.path, setOverrides);
   const planned = await planWrites(rendered, options.overwrite ?? false);
   const publicNames = items.filter((item) => !item.hidden).map((item) => item.name);
 
@@ -280,6 +359,19 @@ export async function doctor(options: ListOptions = {}): Promise<DoctorReport> {
         status: 'fail',
         message: `Missing ${config.paths.styles}; run aliencn init --overwrite.`
       });
+    }
+
+    if (config.theme) {
+      const themeFile = themePath(config);
+      if (await exists(resolveWithinRoot(root, themeFile))) {
+        checks.push({ name: 'theme', status: 'pass', message: `${themeFile} (${config.theme})` });
+      } else {
+        checks.push({
+          name: 'theme',
+          status: 'fail',
+          message: `Missing ${themeFile}; run aliencn init --theme ${config.theme}.`
+        });
+      }
     }
 
     const installed = (await listComponents({ cwd: root })).filter((entry) => entry.installed);

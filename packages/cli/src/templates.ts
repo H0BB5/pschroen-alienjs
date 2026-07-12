@@ -1,4 +1,4 @@
-import { access, readFile } from 'node:fs/promises';
+import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,7 +23,8 @@ export async function renderRegistryItems(
   root: string,
   config: AliencnConfig,
   items: readonly RegistryItem[],
-  componentPathOverride?: string
+  componentPathOverride?: string,
+  optionOverrides: Readonly<Record<string, string>> = {}
 ): Promise<RenderedFile[]> {
   const templateRoot = await findTemplateRoot();
   const rendered: RenderedFile[] = [];
@@ -49,6 +50,7 @@ export async function renderRegistryItems(
       }
 
       content = replaceImports(content, root, config, absolutePath);
+      content = applyItemOptions(content, item, optionOverrides);
       if (config.language === 'js' && /\.[cm]?tsx?$/u.test(file.source)) {
         content = transpileJavaScript(content, file.source);
       }
@@ -101,6 +103,33 @@ function replaceImports(
     .replaceAll('{{components}}', stripKnownExtension(components));
 }
 
+function applyItemOptions(
+  source: string,
+  item: RegistryItem,
+  overrides: Readonly<Record<string, string>>
+): string {
+  let output = source;
+  for (const option of item.options ?? []) {
+    const value = overrides[option.name] ?? option.default;
+    if (!option.values.includes(value)) {
+      throw new AliencnError(
+        'INVALID_ARGUMENT',
+        `Invalid value "${value}" for option "${option.name}" of "${item.name}". Allowed values: ${option.values.join(', ')}.`
+      );
+    }
+    output = output.replaceAll(`{{option:${option.name}}}`, value);
+  }
+
+  const unresolved = output.match(/\{\{option:([\w-]+)\}\}/u);
+  if (unresolved) {
+    throw new AliencnError(
+      'IO_ERROR',
+      `Template for "${item.name}" references undeclared option "${unresolved[1] ?? ''}".`
+    );
+  }
+  return output;
+}
+
 function transpileJavaScript(source: string, sourceName: string): string {
   const result = ts.transpileModule(source, {
     fileName: sourceName,
@@ -129,11 +158,52 @@ function transpileJavaScript(source: string, sourceName: string): string {
   return result.outputText;
 }
 
+export const THEME_FILE = 'aliencn-theme.css';
+
+/**
+ * Resolves a theme argument to stylesheet content: a packaged preset name
+ * (`carbon`, `paper`), or a custom stylesheet path when the value ends with
+ * `.css`.
+ */
+export async function resolveThemeContent(theme: string, root: string): Promise<string> {
+  if (theme.endsWith('.css')) {
+    const source = path.isAbsolute(theme) ? theme : path.resolve(root, theme);
+    try {
+      return await readFile(source, 'utf8');
+    } catch (error) {
+      throw new AliencnError(
+        'IO_ERROR',
+        `Unable to read the custom theme stylesheet "${theme}".`,
+        { source },
+        { cause: error }
+      );
+    }
+  }
+
+  const themesRoot = await findTemplateDirectory('themes');
+  try {
+    return await readFile(path.join(themesRoot, `${theme}.css`), 'utf8');
+  } catch {
+    const presets = (await readdir(themesRoot))
+      .filter((entry) => entry.endsWith('.css'))
+      .map((entry) => entry.slice(0, -4))
+      .sort();
+    throw new AliencnError(
+      'INVALID_ARGUMENT',
+      `Unknown theme preset "${theme}". Available presets: ${presets.join(', ')}. Pass a .css path for a custom theme.`
+    );
+  }
+}
+
 async function findTemplateRoot(): Promise<string> {
+  return findTemplateDirectory('registry');
+}
+
+async function findTemplateDirectory(name: string): Promise<string> {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.resolve(moduleDirectory, '..', 'templates', 'registry'),
-    path.resolve(moduleDirectory, '..', '..', 'templates', 'registry')
+    path.resolve(moduleDirectory, '..', 'templates', name),
+    path.resolve(moduleDirectory, '..', '..', 'templates', name)
   ];
 
   for (const candidate of candidates) {
@@ -144,7 +214,7 @@ async function findTemplateRoot(): Promise<string> {
       // Continue to the source-tree fallback.
     }
   }
-  throw new AliencnError('IO_ERROR', 'The packaged Aliencn registry templates are missing.', {
+  throw new AliencnError('IO_ERROR', 'The packaged Aliencn templates are missing.', {
     candidates
   });
 }

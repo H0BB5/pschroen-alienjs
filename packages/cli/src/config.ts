@@ -30,6 +30,7 @@ export const aliencnConfigSchema = z
     version: z.literal(1),
     framework: z.enum(['next', 'vite', 'react']),
     language: z.enum(['ts', 'js']),
+    theme: z.string().min(1).optional(),
     paths: z.object({
       components: projectPathSchema,
       utils: projectPathSchema,

@@ -204,6 +204,69 @@ describe('project operations', () => {
     expect((await readConfig(fixture))?.version).toBe(1);
   });
 
+  it('applies theme presets, replaces them, and accepts custom stylesheets', async () => {
+    const fixture = await copyFixture('next-ts');
+    fixtures.push(fixture);
+    const themed = await initProject({ cwd: fixture, yes: true, skipInstall: true, theme: 'carbon' });
+    expect(themed.themePath).toBe('src/app/aliencn-theme.css');
+    const themeFile = path.join(fixture, 'src/app/aliencn-theme.css');
+    expect(await readFile(themeFile, 'utf8')).toContain('carbon');
+    expect((await readConfig(fixture))?.theme).toBe('carbon');
+    expect((await doctor({ cwd: fixture })).checks).toContainEqual(
+      expect.objectContaining({ name: 'theme', status: 'pass' })
+    );
+
+    // An explicit --theme on an initialized project swaps the stylesheet.
+    await initProject({ cwd: fixture, yes: true, skipInstall: true, theme: 'paper' });
+    expect(await readFile(themeFile, 'utf8')).toContain('paper');
+    expect((await readConfig(fixture))?.theme).toBe('paper');
+
+    // Bring-your-own tokens via a .css path.
+    await writeFile(path.join(fixture, 'brand.css'), ':root { --aliencn-signal: #ff00ff; }\n', 'utf8');
+    await initProject({ cwd: fixture, yes: true, skipInstall: true, theme: './brand.css' });
+    expect(await readFile(themeFile, 'utf8')).toContain('#ff00ff');
+
+    await expect(
+      initProject({ cwd: fixture, yes: true, skipInstall: true, theme: 'does-not-exist' })
+    ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
+  });
+
+  it('renders install-time options with validation', async () => {
+    const fixture = await copyFixture('next-ts');
+    fixtures.push(fixture);
+    await initProject({ cwd: fixture, yes: true, skipInstall: true });
+    const switchFile = path.join(fixture, 'src/components/aliencn/switch.tsx');
+
+    await addComponents(['switch'], {
+      cwd: fixture,
+      yes: true,
+      skipInstall: true,
+      set: { variant: 'system' }
+    });
+    expect(await readFile(switchFile, 'utf8')).toContain("variant = 'system'");
+
+    await addComponents(['switch'], { cwd: fixture, yes: true, overwrite: true, skipInstall: true });
+    expect(await readFile(switchFile, 'utf8')).toContain("variant = 'default'");
+
+    await expect(
+      addComponents(['switch'], {
+        cwd: fixture,
+        yes: true,
+        skipInstall: true,
+        set: { variant: 'gigantic' }
+      })
+    ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
+
+    await expect(
+      addComponents(['button'], {
+        cwd: fixture,
+        yes: true,
+        skipInstall: true,
+        set: { variant: 'system' }
+      })
+    ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
+  });
+
   it('reports a missing registry foundation for an installed component', async () => {
     const fixture = await copyFixture('next-ts');
     fixtures.push(fixture);

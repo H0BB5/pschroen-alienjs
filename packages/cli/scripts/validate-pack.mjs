@@ -34,7 +34,9 @@ try {
     'templates/registry/panel.tsx',
     'templates/registry/shader-canvas.tsx',
     'templates/registry/sheet.tsx',
-    'templates/registry/space-types.d.ts'
+    'templates/registry/space-types.d.ts',
+    'templates/themes/carbon.css',
+    'templates/themes/paper.css'
   ];
   const missing = required.filter((file) => !paths.has(file));
   if (missing.length > 0) {

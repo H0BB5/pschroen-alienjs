@@ -1,3 +1,7 @@
+// Interim ambient declarations for @alienkitty/space.js, which does not yet
+// publish its own TypeScript declarations to npm. Only the surface used by
+// the Aliencn components is declared. Delete this file once an
+// @alienkitty/space.js release ships bundled types.
 declare module '@alienkitty/space.js' {
   export interface PanelUpdate {
     path: Array<string | number | readonly [string, number]>;
@@ -33,22 +37,12 @@ declare module '@alienkitty/space.js' {
     animateIn(fast?: boolean): void;
     setPanelValue(name: string, value: unknown): void;
     setPanelIndex(name: string, index: number): void;
+    invert(inverted: boolean): void;
     destroy(): null;
   }
 
   export class Magnetic {
     constructor(object: Interface, options?: { threshold?: number });
     destroy(): null;
-  }
-}
-
-declare module '@alienkitty/alien.js/three' {
-  import type { Vector3 } from 'three';
-
-  export class Wobble {
-    constructor(position?: Vector3);
-    scale: number;
-    lerpSpeed: number;
-    update(time: number): void;
   }
 }

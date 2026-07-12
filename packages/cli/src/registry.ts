@@ -67,7 +67,17 @@ const dashboard: readonly RegistryItem[] = [
     'Sheet',
     'Edge-docked configuration surface with sections, rows, and a save-bar footer.'
   ),
-  dashboardItem('switch', 'Switch', 'Controlled accessible boolean switch with optional visible label.'),
+  {
+    name: 'switch',
+    title: 'Switch',
+    description:
+      'Controlled boolean switch in default (settings toggle) and system (instrument) variants.',
+    category: 'dashboard',
+    files: [{ source: 'switch.tsx', target: 'switch.tsx', location: 'components' }],
+    registryDependencies: ['styles', 'cn'],
+    dependencies: {},
+    options: [{ name: 'variant', values: ['default', 'system'], default: 'default' }]
+  },
   dashboardItem('skeleton', 'Skeleton', 'Reduced-motion-aware loading placeholder.'),
   dashboardItem('empty-state', 'Empty state', 'Centered empty-state composition with one primary action.'),
   dashboardItem('banner', 'Banner', 'Persistent information, success, warning, and danger notice.')

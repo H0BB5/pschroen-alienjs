@@ -1,0 +1,32 @@
+/* Aliencn theme preset: paper.
+   Light-first editorial instrumentation: warm paper surfaces, ink text, and
+   a deep spectral-green signal. Keeps the square geometry and grid language.
+   Applied after aliencn.css; explicit data-aliencn-theme attributes still
+   win, so a pinned dark island stays dark. */
+:root {
+  color-scheme: light;
+  --aliencn-canvas: #f4f2ec;
+  --aliencn-surface: #fbfaf6;
+  --aliencn-surface-raised: #edeae1;
+  --aliencn-surface-active: #e3dfd3;
+  --aliencn-text: #191b18;
+  --aliencn-text-muted: #5d635c;
+  --aliencn-text-faint: #939a91;
+  --aliencn-border: rgb(25 27 24 / 0.16);
+  --aliencn-border-strong: rgb(25 27 24 / 0.42);
+  --aliencn-accent: #14161a;
+  --aliencn-accent-hover: #000000;
+  --aliencn-accent-soft: rgb(0 105 75 / 0.1);
+  --aliencn-signal: #00694b;
+  --aliencn-on-accent: #f4f2ec;
+  --aliencn-info: #0f5aa8;
+  --aliencn-info-soft: rgb(15 90 168 / 0.08);
+  --aliencn-success: #0e6b46;
+  --aliencn-success-soft: rgb(14 107 70 / 0.08);
+  --aliencn-warning: #8a5600;
+  --aliencn-warning-soft: rgb(138 86 0 / 0.09);
+  --aliencn-danger: #ad2437;
+  --aliencn-danger-soft: rgb(173 36 55 / 0.08);
+  --aliencn-shadow: 0 22px 60px rgb(25 27 24 / 0.16);
+  --aliencn-grid: rgb(25 27 24 / 0.05);
+}

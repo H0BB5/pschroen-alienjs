@@ -389,12 +389,12 @@
 }
 .aliencn-switch:disabled { cursor: not-allowed; opacity: 0.38; }
 
-/* Default: the standard settings toggle. */
+/* Default: the standard settings toggle. Radius follows the theme tokens. */
 .aliencn-switch--default .aliencn-switch__label { font: 500 0.8125rem/1.3 var(--aliencn-font); }
 .aliencn-switch--default .aliencn-switch__track {
   background: var(--aliencn-surface-active);
   border: 1px solid var(--aliencn-border-strong);
-  border-radius: 999px;
+  border-radius: var(--aliencn-radius-lg);
   height: 1.5rem;
   padding: 0.1875rem;
   transition: background var(--aliencn-duration), border-color var(--aliencn-duration);
@@ -406,7 +406,7 @@
 }
 .aliencn-switch--default .aliencn-switch__thumb {
   background: var(--aliencn-text-muted);
-  border-radius: 999px;
+  border-radius: var(--aliencn-radius-lg);
   display: block;
   height: 1.0625rem;
   transform: translateX(0);
@@ -583,49 +583,6 @@
   box-shadow: 0 0 0 3px var(--aliencn-accent-soft), inset 0 0 0 1px var(--aliencn-signal);
   outline: 1px solid var(--aliencn-signal);
   outline-offset: 3px;
-}
-
-@keyframes aliencn-spin { to { transform: rotate(360deg); } }
-@keyframes aliencn-sweep { to { transform: translateX(120%); } }
-@keyframes aliencn-scan {
-  0% { background-position: 0 0, 200% 0; }
-  100% { background-position: 0 0, -20% 0; }
-}
-@keyframes aliencn-signal {
-  0%, 82%, 100% { opacity: 1; }
-  86%, 94% { opacity: 0.28; }
-}
-
-@media (max-width: 36rem) {
-  .aliencn-card__header,
-  .aliencn-card__content,
-  .aliencn-card__footer,
-  .aliencn-dialog__header,
-  .aliencn-dialog__body,
-  .aliencn-dialog__footer { padding: 0.9rem; }
-  .aliencn-dialog__header { padding-right: 3rem; }
-  .aliencn-tab { flex: 1 0 auto; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .aliencn-button,
-  .aliencn-input,
-  .aliencn-switch__track,
-  .aliencn-switch__thumb {
-    transition-duration: 0.01ms;
-  }
-  .aliencn-button:hover:not(:disabled) { transform: none; }
-  .aliencn-button:hover:not(:disabled)::before,
-  .aliencn-badge--success::before,
-  .aliencn-spinner,
-  .aliencn-skeleton { animation: none; }
-}
-
-@media (forced-colors: active) {
-  .aliencn-card,
-  .aliencn-dialog,
-  .aliencn-empty,
-  .aliencn-shader { border-color: CanvasText; }
 }
 
 /* Sheet ------------------------------------------------------------------- */
@@ -811,6 +768,46 @@
   }
 }
 
+@keyframes aliencn-spin { to { transform: rotate(360deg); } }
+@keyframes aliencn-sweep { to { transform: translateX(120%); } }
+@keyframes aliencn-scan {
+  0% { background-position: 0 0, 200% 0; }
+  100% { background-position: 0 0, -20% 0; }
+}
+@keyframes aliencn-signal {
+  0%, 82%, 100% { opacity: 1; }
+  86%, 94% { opacity: 0.28; }
+}
+
+@media (max-width: 36rem) {
+  .aliencn-card__header,
+  .aliencn-card__content,
+  .aliencn-card__footer,
+  .aliencn-dialog__header,
+  .aliencn-dialog__body,
+  .aliencn-dialog__footer { padding: 0.9rem; }
+  .aliencn-dialog__header { padding-right: 3rem; }
+  .aliencn-tab { flex: 1 0 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aliencn-button,
+  .aliencn-input,
+  .aliencn-switch__track,
+  .aliencn-switch__thumb {
+    transition-duration: 0.01ms;
+  }
+  .aliencn-button:hover:not(:disabled) { transform: none; }
+  .aliencn-button:hover:not(:disabled)::before,
+  .aliencn-badge--success::before,
+  .aliencn-spinner,
+  .aliencn-skeleton { animation: none; }
+}
+
 @media (forced-colors: active) {
   .aliencn-sheet { border-color: CanvasText; }
+  .aliencn-card,
+  .aliencn-dialog,
+  .aliencn-empty,
+  .aliencn-shader { border-color: CanvasText; }
 }

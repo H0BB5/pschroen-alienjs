@@ -22,7 +22,7 @@ export function Switch({
   checked,
   onCheckedChange,
   label,
-  variant = 'default',
+  variant = '{{option:variant}}',
   className,
   disabled,
   ...props

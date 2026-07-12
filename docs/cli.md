@@ -8,7 +8,9 @@ Aliases are derived from the actual `tsconfig.json`/`jsconfig.json` `paths` mapp
 Package-manager detection walks up parent directories, so workspace subpackages resolve the repository's pnpm, Yarn, or Bun lockfile instead of defaulting to npm.
 Next.js projects without an App Router `app` directory receive the stylesheet in `styles/` instead of creating a stray `app/` directory.
 
-Options: `--cwd`, `--path`, `--framework`, `--typescript`, `--javascript`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`.
+Options: `--cwd`, `--path`, `--framework`, `--theme`, `--typescript`, `--javascript`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`.
+
+`--theme` applies a token theme after the foundation stylesheet: a packaged preset (`carbon`, `paper`) or any `.css` file of token overrides (for example a product design-system bridge). The stylesheet is written to `aliencn-theme.css` next to the foundation, recorded in `aliencn.json`, checked by `doctor`, and swapped by running `init --theme <other>` again; user customizations to the theme file are preserved on ordinary re-init.
 
 Cancelling the interactive confirmation exits with status 1.
 
@@ -21,7 +23,9 @@ A declared dependency whose version range cannot satisfy a template requirement 
 TypeScript projects also receive interim ambient declaration files (`space-types.d.ts`, `alien-types.d.ts`) with the experiential components, because the published `@alienkitty` packages do not ship their own types yet.
 Delete those files once upstream releases include type declarations.
 
-Options: `--all`, `--cwd`, `--path`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`.
+Options: `--all`, `--cwd`, `--path`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`, `--set`.
+
+`--set <option>=<value>` (repeatable) chooses install-time options that components declare, baking the choice into the generated source. Example: `aliencn add switch --set variant=system`. Unknown options and values outside the declared set are rejected.
 
 `--yes` preserves conflicts. Use `--overwrite` only after reviewing `aliencn diff`. `--dry-run` prints the write plan (including conflicts) and the packages that would be installed, then exits without touching anything.
 
