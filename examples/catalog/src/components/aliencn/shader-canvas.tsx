@@ -3,20 +3,13 @@
 import * as React from 'react';
 import type { ColorRepresentation } from 'three';
 
-import { cn } from '{{utils}}/cn';
+import { cn } from '@/lib/aliencn/cn';
 
-export interface ShaderCanvasProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'children'> {
+export interface ShaderCanvasProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color'> {
   color?: ColorRepresentation;
   speed?: number;
   intensity?: number;
   label?: string;
-}
-
-interface ShaderCanvasSettings {
-  color: ColorRepresentation;
-  speed: number;
-  intensity: number;
 }
 
 export function ShaderCanvas({
@@ -28,9 +21,6 @@ export function ShaderCanvas({
   ...props
 }: ShaderCanvasProps): React.JSX.Element {
   const hostRef = React.useRef<HTMLDivElement>(null);
-  const settingsRef = React.useRef<ShaderCanvasSettings>({ color, speed, intensity });
-  settingsRef.current = { color, speed, intensity };
-  const applySettingsRef = React.useRef<((settings: ShaderCanvasSettings) => void) | null>(null);
   const [failed, setFailed] = React.useState(false);
 
   React.useEffect(() => {
@@ -44,18 +34,17 @@ export function ShaderCanvas({
       .then(([three, alien]) => {
         if (disposed) return;
         const renderer = new three.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         const scene = new three.Scene();
         const camera = new three.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
         camera.position.z = 1;
 
         const geometry = new three.PlaneGeometry(2, 2);
-        const wobblePosition = new three.Vector3();
         const uniforms = {
           uTime: { value: 0 },
-          uColor: { value: new three.Color(settingsRef.current.color) },
-          uIntensity: { value: settingsRef.current.intensity },
-          uResolution: { value: new three.Vector2(1, 1) },
-          uWobble: { value: wobblePosition }
+          uColor: { value: new three.Color(color) },
+          uIntensity: { value: intensity },
+          uResolution: { value: new three.Vector2(1, 1) }
         };
         const material = new three.ShaderMaterial({
           uniforms,
@@ -72,7 +61,6 @@ export function ShaderCanvas({
             uniform float uIntensity;
             uniform vec3 uColor;
             uniform vec2 uResolution;
-            uniform vec3 uWobble;
             varying vec2 vUv;
 
             float hash21(vec2 p) {
@@ -105,10 +93,10 @@ export function ShaderCanvas({
             }
 
             void main() {
-              vec2 p = vUv - 0.5 - uWobble.xy;
+              vec2 p = vUv - 0.5;
               p.x *= uResolution.x / max(uResolution.y, 1.0);
 
-              float time = uTime * 0.22 + uWobble.z * 0.5;
+              float time = uTime * 0.22;
               float low = fbm(p * 2.4 + vec2(time, -time * 0.7));
               vec2 warp = vec2(
                 fbm(p * 3.1 + low + vec2(2.7, time)),
@@ -133,11 +121,11 @@ export function ShaderCanvas({
         });
         const mesh = new three.Mesh(geometry, material);
         scene.add(mesh);
-        const wobble = new alien.Wobble(wobblePosition);
-        wobble.scale = 0.06;
+        const wobble = new alien.Wobble(mesh.position);
+        wobble.scale = 0.035;
         wobble.lerpSpeed = 0.04;
 
-        host.appendChild(renderer.domElement);
+        host.replaceChildren(renderer.domElement);
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const timer = new three.Timer();
         timer.connect(document);
@@ -145,34 +133,25 @@ export function ShaderCanvas({
 
         const resize = (): void => {
           const bounds = host.getBoundingClientRect();
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
           uniforms.uResolution.value.set(Math.max(1, bounds.width), Math.max(1, bounds.height));
           renderer.setSize(Math.max(1, bounds.width), Math.max(1, bounds.height), false);
           renderer.render(scene, camera);
         };
         const observer = new ResizeObserver(resize);
         observer.observe(host);
-
-        applySettingsRef.current = (settings) => {
-          uniforms.uColor.value.set(settings.color);
-          uniforms.uIntensity.value = settings.intensity;
-          if (reducedMotion) renderer.render(scene, camera);
-        };
         resize();
 
-        let time = 0;
         const render = (timestamp: number): void => {
           timer.update(timestamp);
-          time += timer.getDelta() * settingsRef.current.speed;
-          uniforms.uTime.value = time;
-          wobble.update(time);
+          const elapsed = timer.getElapsed() * speed;
+          uniforms.uTime.value = elapsed;
+          wobble.update(elapsed);
           renderer.render(scene, camera);
           frame = requestAnimationFrame(render);
         };
         if (!reducedMotion) frame = requestAnimationFrame(render);
 
         cleanup = () => {
-          applySettingsRef.current = null;
           cancelAnimationFrame(frame);
           observer.disconnect();
           timer.dispose();
@@ -191,10 +170,6 @@ export function ShaderCanvas({
       disposed = true;
       cleanup?.();
     };
-  }, []);
-
-  React.useEffect(() => {
-    applySettingsRef.current?.({ color, speed, intensity });
   }, [color, intensity, speed]);
 
   return (
@@ -202,14 +177,10 @@ export function ShaderCanvas({
       {...props}
       ref={hostRef}
       className={cn('aliencn-shader', className)}
-      role={failed ? undefined : 'img'}
-      aria-label={failed ? undefined : label}
+      role="img"
+      aria-label={label}
     >
-      {failed ? (
-        <span role="status" className="aliencn-shader__fallback">
-          WebGL is unavailable.
-        </span>
-      ) : null}
+      {failed ? <span className="aliencn-shader__fallback">WebGL is unavailable.</span> : null}
     </div>
   );
 }
