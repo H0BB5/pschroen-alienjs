@@ -17,7 +17,19 @@ import { Dialog } from '@/components/aliencn/dialog';
 import { EmptyState } from '@/components/aliencn/empty-state';
 import { InputField } from '@/components/aliencn/input-field';
 import { Magnetic } from '@/components/aliencn/magnetic';
+import { AlertDialog } from '@/components/aliencn/alert-dialog';
+import { Checkbox } from '@/components/aliencn/checkbox';
+import { DecodeText } from '@/components/aliencn/decode-text';
+import { Label } from '@/components/aliencn/label';
 import { AlienPanel } from '@/components/aliencn/panel';
+import { Progress } from '@/components/aliencn/progress';
+import { Select } from '@/components/aliencn/select';
+import { Separator } from '@/components/aliencn/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/aliencn/table';
+import { Textarea } from '@/components/aliencn/textarea';
+import { Ticker } from '@/components/aliencn/ticker';
+import { toast } from '@/components/aliencn/toast';
+import { Tooltip } from '@/components/aliencn/tooltip';
 import { ShaderCanvas } from '@/components/aliencn/shader-canvas';
 import { Sheet, SheetRow, SheetSection } from '@/components/aliencn/sheet';
 import { Skeleton } from '@/components/aliencn/skeleton';
@@ -149,6 +161,7 @@ function InstallCommand({ command }: Readonly<{ command: string }>): React.JSX.E
 }
 
 function UnitDemo({ slug }: Readonly<{ slug: string }>): React.JSX.Element {
+  const remountKey = slug;
   switch (slug) {
     case 'button':
       return (
@@ -257,6 +270,131 @@ function UnitDemo({ slug }: Readonly<{ slug: string }>): React.JSX.Element {
       );
     case 'shader-canvas':
       return <ShaderCanvas className="detail-demo-shader" label="Animated spectral field" speed={0.42} intensity={0.92} />;
+    case 'tooltip':
+      return (
+        <div className="detail-demo-row">
+          <Tooltip content="Coordinate checksum holds at 0.82.">
+            <Button tone="secondary">Hover or focus</Button>
+          </Tooltip>
+          <Tooltip content="Flips when the viewport is tight." side="bottom">
+            <Button tone="ghost">Bottom side</Button>
+          </Tooltip>
+        </div>
+      );
+    case 'toast':
+      return (
+        <div className="detail-demo-row">
+          <Button tone="secondary" onClick={() => toast('Field map refreshed.', { tone: 'info' })}>
+            Info toast
+          </Button>
+          <Button tone="secondary" onClick={() => toast('Spectral link established.', { tone: 'success' })}>
+            Success toast
+          </Button>
+          <Button tone="danger" onClick={() => toast('Renderer context lost.', { tone: 'danger', duration: 0 })}>
+            Sticky danger
+          </Button>
+        </div>
+      );
+    case 'select':
+      return (
+        <div className="detail-demo-stack">
+          <Label htmlFor="bench-select">Target field</Label>
+          <Select id="bench-select" defaultValue="a">
+            <option value="a">Spectral field A</option>
+            <option value="b">Spectral field B</option>
+            <option value="c">Dark field</option>
+          </Select>
+        </div>
+      );
+    case 'label':
+      return (
+        <div className="detail-demo-stack">
+          <Label htmlFor="bench-endpoint">Endpoint</Label>
+          <InputField label="Endpoint" inputProps={{ id: 'bench-endpoint', defaultValue: 'alien://spectral/01' }} />
+        </div>
+      );
+    case 'separator':
+      return (
+        <div className="detail-demo-stack">
+          <p>Registration above.</p>
+          <Separator />
+          <p>Hairline between blocks.</p>
+          <Separator dashed />
+          <p>Dashed variant below.</p>
+        </div>
+      );
+    case 'textarea':
+      return <Textarea rows={4} defaultValue="Envelope holding at 0.82 coherence." aria-label="Transmission notes" className="detail-demo-textarea" />;
+    case 'checkbox':
+      return (
+        <div className="detail-demo-stack">
+          <Checkbox defaultChecked label="Persist telemetry" />
+          <Checkbox label="Mirror to dark field" />
+          <Checkbox disabled label="Locked by operator policy" />
+        </div>
+      );
+    case 'alert-dialog':
+      return <AlertDialogDemo />;
+    case 'table':
+      return (
+        <Table className="detail-demo-table">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Node</TableHead>
+              <TableHead>State</TableHead>
+              <TableHead className="aliencn-table__cell--numeric">Drift</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Alpha</TableCell>
+              <TableCell>Nominal</TableCell>
+              <TableCell numeric>0.42</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Beta</TableCell>
+              <TableCell>Scanning</TableCell>
+              <TableCell numeric>0.78</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Gamma</TableCell>
+              <TableCell>Drift</TableCell>
+              <TableCell numeric>1.04</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+    case 'progress':
+      return (
+        <div className="detail-demo-stack">
+          <Progress value={64} label="Buffering" />
+          <Progress label="Scanning" />
+        </div>
+      );
+    case 'scroll-director':
+      return (
+        <p className="detail-demo-note">
+          Active on this page. Scroll and the content blocks lean with velocity;
+          modal surfaces lock the page; anchor links glide. Native scroll position
+          is never intercepted.
+        </p>
+      );
+    case 'decode-text':
+      return <DecodeText key={remountKey} text="SPECTRAL LINK STABLE" className="detail-demo-decode" />;
+    case 'ticker':
+      return (
+        <Ticker
+          className="detail-demo-ticker"
+          duration={18}
+          items={['Drift 0.42', 'Noise 0.78', 'Nodes 13', 'Field nominal']}
+        />
+      );
+    case 'section-rail':
+      return (
+        <div className="detail-demo-rail">
+          <SectionRailPreview />
+        </div>
+      );
     default:
       return <p>No bench is registered for this unit.</p>;
   }
@@ -332,5 +470,34 @@ function SwitchDemo(): React.JSX.Element {
         <Switch variant="system" checked={system} onCheckedChange={setSystem} label="Telemetry bus" />
       </div>
     </div>
+  );
+}
+
+function AlertDialogDemo(): React.JSX.Element {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <>
+      <Button tone="danger" onClick={() => setOpen(true)}>Sever link</Button>
+      <AlertDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Sever spectral link"
+        description="The operator will disconnect from the field."
+        actionLabel="Sever"
+        onAction={() => toast('Spectral link severed.', { tone: 'warning' })}
+      >
+        <p className="catalog-dialog-copy">Telemetry stops immediately. Reconnection requires a new handshake.</p>
+      </AlertDialog>
+    </>
+  );
+}
+
+function SectionRailPreview(): React.JSX.Element {
+  return (
+    <nav className="aliencn-rail" aria-label="Section progress preview">
+      <a href="#controls" aria-current="true"><span aria-hidden="true" /><span>01</span></a>
+      <a href="#systems"><span aria-hidden="true" /><span>02</span></a>
+      <a href="#states"><span aria-hidden="true" /><span>03</span></a>
+    </nav>
   );
 }

@@ -3,7 +3,8 @@ import { JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import { ViewTransitions } from 'next-view-transitions';
 import type { ReactNode } from 'react';
 
-import { ScrollDirector } from '@/components/scroll-director';
+import { ScrollDirector } from '@/components/aliencn/scroll-director';
+import { Toaster } from '@/components/aliencn/toast';
 
 import './aliencn.css';
 import './catalog.css';
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <body>
           <ScrollDirector />
           {children}
+          <Toaster />
         </body>
       </html>
     </ViewTransitions>

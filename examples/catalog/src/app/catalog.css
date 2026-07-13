@@ -492,39 +492,6 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
 }
 
-.catalog-rail {
-  display: grid;
-  gap: 1.15rem;
-  left: 1.05rem;
-  mix-blend-mode: difference;
-  position: fixed;
-  top: 50%;
-  translate: 0 -50%;
-  z-index: 18;
-}
-
-.catalog-rail a {
-  align-items: center;
-  color: rgb(255 255 255 / 0.44);
-  display: flex;
-  font: 500 0.5rem/1 var(--aliencn-mono);
-  gap: 0.55rem;
-  letter-spacing: 0.1em;
-  transition: color 0.35s;
-}
-
-.catalog-rail a span:first-child {
-  background: currentColor;
-  display: block;
-  height: 1px;
-  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  width: 0.9rem;
-}
-
-.catalog-rail a:hover { color: rgb(255 255 255 / 0.78); }
-.catalog-rail a[aria-current] { color: #fff; }
-.catalog-rail a[aria-current] span:first-child { width: 2rem; }
-
 .catalog-nav a {
   padding-bottom: 0.25rem;
   position: relative;
@@ -620,40 +587,7 @@ a { color: inherit; text-decoration: none; }
 
 .catalog-hero.is-tracking .catalog-hero__readout { opacity: 1; }
 
-.catalog-ticker {
-  border-bottom: 1px solid var(--aliencn-border);
-  overflow: hidden;
-}
-
-.catalog-ticker__track {
-  display: flex;
-  width: max-content;
-}
-
-.catalog-ticker ul {
-  align-items: center;
-  color: var(--aliencn-text-muted);
-  display: flex;
-  font: 500 0.5625rem/1 var(--aliencn-mono);
-  gap: 3.25rem;
-  letter-spacing: 0.12em;
-  list-style: none;
-  margin: 0;
-  padding: 0.95rem 1.625rem;
-  text-transform: uppercase;
-}
-
-.catalog-ticker li {
-  align-items: center;
-  display: flex;
-  gap: 3.25rem;
-  white-space: nowrap;
-}
-
-.catalog-ticker li::before {
-  color: var(--aliencn-signal);
-  content: "+";
-}
+.catalog-stream { border-top: 0; }
 
 .catalog-line { display: block; }
 .catalog-line > span { display: block; }
@@ -663,17 +597,12 @@ a { color: inherit; text-decoration: none; }
 [data-line-i="1"] { --line-i: 1; }
 [data-line-i="2"] { --line-i: 2; }
 
-.catalog-decode { font-variant-numeric: tabular-nums; }
-
 .catalog-footer__clock { font-variant-numeric: tabular-nums; }
 
 @keyframes catalog-ignite {
   from { opacity: 0; }
 }
 
-@keyframes catalog-ticker {
-  to { transform: translate3d(-50%, 0, 0); }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .catalog-hero__shader {
@@ -698,8 +627,6 @@ a { color: inherit; text-decoration: none; }
     transform: translate3d(calc(var(--fx, 0) * -0.9rem), calc(var(--fy, 0) * -0.6rem), 0);
   }
 
-  .catalog-ticker__track { animation: catalog-ticker 38s linear infinite; }
-  .catalog-ticker:hover .catalog-ticker__track { animation-play-state: paused; }
 
   /* Reveal system: gated on the pre-paint JS class so content is never
      hidden for no-JS visitors or reduced-motion users. */
@@ -788,7 +715,6 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 72rem) {
-  .catalog-rail { display: none; }
 }
 
 @media (max-width: 64rem) {
@@ -798,8 +724,6 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 42rem) {
   .catalog-progress { top: 4rem; }
-  .catalog-ticker ul,
-  .catalog-ticker li { gap: 2.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -807,34 +731,10 @@ a { color: inherit; text-decoration: none; }
   .catalog-hero__scan { display: none; }
   .catalog-hero__cross,
   .catalog-hero__readout { display: none; }
-  .catalog-ticker__track { animation: none; }
 }
 
 /* Scroll direction ---------------------------------------------------------- */
 
-html.catalog-modal-lock { overflow: hidden; }
-
-/* Kinetic scroll response: velocity-driven skew/translate on content blocks,
-   adapted from Space.js SmoothSkew. Scrolling itself stays native. */
-@media (prefers-reduced-motion: no-preference) {
-  .catalog-intro,
-  .catalog-rack,
-  .catalog-systems-grid,
-  .catalog-states-head,
-  .catalog-states-grid,
-  .catalog-registry-head,
-  .catalog-registry li,
-  .catalog-footer,
-  .detail-body > *,
-  .detail-pager a {
-    transform:
-      skewY(var(--kinetic-skew, 0deg))
-      translate3d(0, var(--kinetic-shift, 0px), 0);
-  }
-}
-
-:root[data-catalog-scan="off"] .catalog-hero__scan { display: none; }
-:root[data-catalog-grid="off"] .catalog-hero__shader::before { display: none; }
 
 /* Registry index ------------------------------------------------------------ */
 
@@ -1197,3 +1097,28 @@ html.catalog-modal-lock { overflow: hidden; }
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }
 }
+
+/* Bench demo helpers ---------------------------------------------------------- */
+
+.detail-demo-note {
+  color: var(--aliencn-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 30rem;
+  text-align: center;
+}
+
+.detail-demo-decode { font: 500 1.1rem/1 var(--aliencn-mono); letter-spacing: 0.1em; }
+.detail-demo-ticker { width: 100%; }
+.detail-demo-table { min-width: 24rem; }
+.detail-demo-textarea { width: min(30rem, 100%); }
+
+.detail-demo-rail .aliencn-rail {
+  mix-blend-mode: normal;
+  position: static;
+  translate: none;
+}
+
+.detail-demo-rail .aliencn-rail a { color: var(--aliencn-text-muted); }
+.detail-demo-rail .aliencn-rail a[aria-current] { color: var(--aliencn-signal); }

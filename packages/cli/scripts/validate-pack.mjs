@@ -33,8 +33,12 @@ try {
     'templates/registry/button.tsx',
     'templates/registry/panel.tsx',
     'templates/registry/shader-canvas.tsx',
+    'templates/registry/scroll-director.tsx',
     'templates/registry/sheet.tsx',
     'templates/registry/space-types.d.ts',
+    'templates/registry/ticker.tsx',
+    'templates/registry/toast.tsx',
+    'templates/registry/tooltip.tsx',
     'templates/themes/carbon.css',
     'templates/themes/paper.css'
   ];

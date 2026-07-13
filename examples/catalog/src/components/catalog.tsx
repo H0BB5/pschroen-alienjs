@@ -4,6 +4,10 @@ import { Link } from 'next-view-transitions';
 import * as React from 'react';
 
 import { Badge } from '@/components/aliencn/badge';
+import { DecodeText } from '@/components/aliencn/decode-text';
+import { SectionRail } from '@/components/aliencn/section-rail';
+import { Ticker } from '@/components/aliencn/ticker';
+import { toast } from '@/components/aliencn/toast';
 import { Banner } from '@/components/aliencn/banner';
 import { Button } from '@/components/aliencn/button';
 import {
@@ -89,8 +93,6 @@ const TICKER_ITEMS = [
   'Field nominal',
   'Source owned'
 ] as const;
-
-const DECODE_GLYPHS = '#[]<>/\\=+*x10';
 
 interface FieldConfig {
   linked: boolean;
@@ -185,23 +187,9 @@ export function Catalog(): React.JSX.Element {
         <span ref={progressRef} />
       </span>
 
-      <nav className="catalog-rail" aria-label="Section progress">
-        <a href="#top" aria-current={activeSection === null ? 'true' : undefined}>
-          <span aria-hidden="true" />
-          <span>00</span>
-        </a>
-        {SECTIONS.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            aria-current={activeSection === section.id ? 'true' : undefined}
-            aria-label={section.label}
-          >
-            <span aria-hidden="true" />
-            <span>{section.number}</span>
-          </a>
-        ))}
-      </nav>
+      <SectionRail
+        sections={[{ id: 'top', number: '00', label: 'Index' }, ...SECTIONS.map((section) => ({ id: section.id, number: section.number, label: section.label }))]}
+      />
 
       <section className="catalog-hero" id="top" data-aliencn-theme="dark" ref={heroRef}>
         <div className="catalog-hero__field" aria-hidden="false">
@@ -232,7 +220,16 @@ export function Catalog(): React.JSX.Element {
           </p>
           <div className="catalog-hero__actions">
             <Magnetic threshold={36}>
-              <Button size="lg" onClick={() => setLinked((current) => !current)}>
+              <Button
+                size="lg"
+                onClick={() => {
+                  const next = !linked;
+                  toast(next ? 'Spectral link established.' : 'Spectral link severed.', {
+                    tone: next ? 'success' : 'warning'
+                  });
+                  setLinked(next);
+                }}
+              >
                 {linked ? 'Sever link' : 'Establish link'}
               </Button>
             </Magnetic>
@@ -255,21 +252,12 @@ export function Catalog(): React.JSX.Element {
         </span>
       </section>
 
-      <div className="catalog-ticker" aria-label="System status stream">
-        <div className="catalog-ticker__track">
-          <ul>
-            {TICKER_ITEMS.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-          <ul aria-hidden="true">
-            {TICKER_ITEMS.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-      </div>
+      <Ticker items={TICKER_ITEMS} aria-label="System status stream" className="catalog-stream" />
 
       <div id="catalog-main">
         <section className="catalog-section" id="controls" aria-labelledby="controls-title">
           <SectionIndex number="01" label="Operator controls" />
-          <div className="catalog-intro">
+          <div className="catalog-intro" data-kinetic="">
             <p className="catalog-eyebrow" data-reveal>SYSTEM MANIFEST</p>
             <h2 id="controls-title" data-reveal>
               <Lines lines={['Controls with signal,', 'not surface noise.']} />
@@ -280,7 +268,7 @@ export function Catalog(): React.JSX.Element {
             </p>
           </div>
 
-          <div className="catalog-rack">
+          <div className="catalog-rack" data-kinetic="">
             <div className="catalog-rack__cell catalog-rack__cell--actions" data-reveal>
               <RackLabel>ACTION MATRIX</RackLabel>
               <div className="catalog-button-matrix">
@@ -330,7 +318,7 @@ export function Catalog(): React.JSX.Element {
         <section className="catalog-section catalog-section--systems" id="systems" aria-labelledby="systems-title">
           <SectionIndex number="02" label="Composed systems" />
           <h2 id="systems-title" className="catalog-visually-hidden">Composed systems</h2>
-          <div className="catalog-systems-grid">
+          <div className="catalog-systems-grid" data-kinetic="">
             <Card className="catalog-system-card" data-reveal>
               <CardHeader>
                 <div className="catalog-card-meta">
@@ -383,7 +371,7 @@ export function Catalog(): React.JSX.Element {
 
         <section className="catalog-section" id="states" aria-labelledby="states-title">
           <SectionIndex number="03" label="Latent states" />
-          <div className="catalog-states-head">
+          <div className="catalog-states-head" data-kinetic="">
             <h2 id="states-title" data-reveal>
               <Lines lines={['Quiet states,', 'same visual grammar.']} />
             </h2>
@@ -391,7 +379,7 @@ export function Catalog(): React.JSX.Element {
               <Button tone="secondary" onClick={() => setDialogOpen(true)}>Open dialog</Button>
             </div>
           </div>
-          <div className="catalog-states-grid">
+          <div className="catalog-states-grid" data-kinetic="">
             <div data-reveal>
               <EmptyState
                 icon={<OrbitIcon />}
@@ -416,9 +404,9 @@ export function Catalog(): React.JSX.Element {
 
         <section className="catalog-section catalog-section--registry" id="registry" aria-labelledby="registry-title">
           <SectionIndex number="04" label="Registry index" />
-          <div className="catalog-registry-head">
+          <div className="catalog-registry-head" data-kinetic="">
             <h2 id="registry-title" data-reveal>
-              <Lines lines={['Fourteen units,', 'one grammar.']} />
+              <Lines lines={[`${REGISTRY.length} units,`, 'one grammar.']} />
             </h2>
             <p data-reveal data-reveal-i="1">
               Every unit is source-owned once installed. Open a unit for its live
@@ -427,7 +415,7 @@ export function Catalog(): React.JSX.Element {
           </div>
           <ol className="catalog-registry" data-reveal data-reveal-i="2">
             {REGISTRY.map((entry, index) => (
-              <li key={entry.slug}>
+              <li key={entry.slug} data-kinetic="">
                 <Link href={`/component/${entry.slug}`} className="catalog-registry__row">
                   <span className="catalog-registry__num">{String(index + 1).padStart(2, '0')}</span>
                   <span
@@ -446,7 +434,7 @@ export function Catalog(): React.JSX.Element {
         </section>
       </div>
 
-      <footer className="catalog-footer">
+      <footer className="catalog-footer" data-kinetic="">
         <span>ALIENCN / SOURCE OWNED / 2026</span>
         <span className="catalog-footer__clock">
           <LiveClock /> / SECTOR 7G
@@ -723,59 +711,6 @@ function useSteadyInterval(tick: () => void, ms: number): void {
 }
 
 /* Live instrumentation ----------------------------------------------------- */
-
-function DecodeText({ text }: Readonly<{ text: string }>): React.JSX.Element {
-  const [display, setDisplay] = React.useState(text);
-  const hostRef = React.useRef<HTMLSpanElement>(null);
-
-  React.useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplay(text);
-      return;
-    }
-
-    let frame = 0;
-    let started = 0;
-    const duration = 700;
-
-    const step = (now: number): void => {
-      if (!started) started = now;
-      const progress = Math.min(1, (now - started) / duration);
-      const resolved = Math.floor(progress * text.length);
-      let output = text.slice(0, resolved);
-      for (let index = resolved; index < text.length; index += 1) {
-        const character = text[index] ?? '';
-        output +=
-          character === ' '
-            ? ' '
-            : DECODE_GLYPHS[Math.floor(Math.random() * DECODE_GLYPHS.length)];
-      }
-      setDisplay(output);
-      if (progress < 1) frame = requestAnimationFrame(step);
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        observer.disconnect();
-        frame = requestAnimationFrame(step);
-      }
-    });
-    observer.observe(host);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [text]);
-
-  return (
-    <span ref={hostRef} className="catalog-decode">
-      <span aria-hidden="true">{display}</span>
-      <span className="catalog-visually-hidden">{text}</span>
-    </span>
-  );
-}
 
 function LiveLatency({ linked }: Readonly<{ linked: boolean }>): React.JSX.Element {
   const [latency, setLatency] = React.useState(14);

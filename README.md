@@ -78,7 +78,11 @@ Dashboard primitives:
 - tabs
 - dialog
 - sheet
+- alert-dialog
 - switch (default and system variants)
+- select, label, separator, textarea, checkbox
+- tooltip and toast
+- table and progress
 - skeleton
 - empty-state
 - banner
@@ -88,6 +92,10 @@ Experiential primitives:
 - `panel`: SSR-safe Space.js panel host
 - `magnetic`: reduced-motion-aware Space.js interaction
 - `shader-canvas`: lifecycle-safe Three.js shader with Alien.js `Wobble` motion
+- `scroll-director`: kinetic scroll response on native scrolling, modal lock, anchor glides
+- `decode-text`: scramble-in text that stays honest for screen readers
+- `ticker`: seamless hairline status stream
+- `section-rail`: fixed section-progress ticks in difference blend
 
 TypeScript projects also receive interim ambient declarations for the `@alienkitty` packages (which do not ship types on npm yet); delete those files once upstream releases include declarations.
 

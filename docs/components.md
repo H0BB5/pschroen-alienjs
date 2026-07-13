@@ -25,6 +25,16 @@ Space.js consumes generic root-level `--ui-*` variables. Aliencn keeps those ali
 | `skeleton` | Loading placeholder | Decorative and motion-reduced |
 | `empty-state` | Icon, title, description, and single action slot | Heading-based readable structure |
 | `banner` | Persistent info, success, warning, or danger notice | Status/alert roles and labeled dismissal |
+| `tooltip` | Hover/focus tooltip with viewport-aware flipping | `role="tooltip"` with `aria-describedby` on the trigger; Escape dismisses while hovered; content stays hoverable |
+| `toast` | `toast()` function plus a `Toaster` outlet with tones and queue | Status and alert live regions; timers pause on hover; entrance honors reduced motion |
+| `select` | Styled native `<select>` with `<option>` children | Platform keyboard, screen-reader, form, and mobile behavior |
+| `label` | Registration-mark form label | Native `<label>` association |
+| `separator` | Hairline or dashed rule, both orientations | Decorative by default; semantic `role="separator"` opt-in |
+| `textarea` | Multi-line input sharing the Input optics | Native semantics, `aria-invalid` wiring |
+| `checkbox` | Native checkbox in the square instrument treatment | Real `<input type="checkbox">` inside its label; focus ring on the visual box |
+| `alert-dialog` | Destructive-confirm preset over `dialog` | Focus starts on Cancel; danger tone on the action |
+| `table` | Styled semantic table in an owned scroll frame | Plain table semantics; horizontal overflow scrolls inside the frame |
+| `progress` | Styled native `<progress>` | Determinate fill or indeterminate scan; scan rests under reduced motion |
 
 These patterns were adapted from the interaction and information hierarchy of the Checkpoint component set, then rewritten as generic, framework-agnostic CSS components.
 
@@ -37,6 +47,22 @@ In TypeScript projects these components install interim ambient declaration file
 `AlienPanel` dynamically loads Space.js on the client, validates the required `data-aliencn-space` root opt-in, creates `Panel` and `PanelItem` instances, narrows update events to the upstream `PanelUpdate` type, reports load failures, and explicitly removes the root DOM element during cleanup. `onReady` exposes a narrow handle rather than leaking an untyped implementation object. The upstream panel is a compact, pointer-oriented developer control surface; use Aliencn's native React controls for user-facing accessible forms.
 
 `items` and `fast` are captured once on mount, so parent re-renders (including `onUpdate` state updates) never destroy and rebuild the panel. Update values after mount through the `onReady` handle's `setValue` and `setIndex`.
+
+### `scroll-director`
+
+Mount once in the root layout. Scrolling stays native (zero input lag); a lerped scroll shadow produces a smoothed velocity that drives `--kinetic-skew`/`--kinetic-shift`, which the foundation applies to any element carrying `data-kinetic`. Adapted from Space.js SmoothSkew. Also owns the modal scroll lock for open dialogs/sheets and gives same-page anchors a smooth glide. Touch devices and reduced motion keep untouched native scrolling.
+
+### `decode-text`
+
+Scrambles text into place on first viewport entry. Server markup and assistive technology always receive the real text; reduced motion renders statically.
+
+### `ticker`
+
+A seamless hairline status stream; the duplicated list is aria-hidden, hovering pauses the loop, and reduced motion parks it.
+
+### `section-rail`
+
+Fixed section-progress ticks rendered in difference blend so they read over any surface, tracking the section nearest the viewport center. Hidden on narrow viewports; pair with `scroll-director` for anchor glides.
 
 ### `magnetic`
 

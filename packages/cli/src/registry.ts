@@ -78,12 +78,67 @@ const dashboard: readonly RegistryItem[] = [
     dependencies: {},
     options: [{ name: 'variant', values: ['default', 'system'], default: 'default' }]
   },
+  dashboardItem('tooltip', 'Tooltip', 'Hover and focus tooltip with viewport-aware flipping and Escape dismissal.'),
+  dashboardItem('toast', 'Toast', 'Queued notifications with tones, live regions, and hover-paused timers.'),
+  dashboardItem('select', 'Select', 'Styled native select with platform keyboard, form, and mobile behavior.'),
+  dashboardItem('label', 'Label', 'The registration-mark form label used across field components.'),
+  dashboardItem('separator', 'Separator', 'Hairline or dashed rule in both orientations.'),
+  dashboardItem('textarea', 'Textarea', 'Multi-line input sharing the Input optics.'),
+  dashboardItem('checkbox', 'Checkbox', 'Native checkbox with the square instrument treatment.'),
+  {
+    name: 'alert-dialog',
+    title: 'Alert dialog',
+    description: 'Destructive-confirm preset over the native dialog with focus on Cancel.',
+    category: 'dashboard',
+    files: [{ source: 'alert-dialog.tsx', target: 'alert-dialog.tsx', location: 'components' }],
+    registryDependencies: ['styles', 'cn', 'dialog', 'button'],
+    dependencies: {}
+  },
+  dashboardItem('table', 'Table', 'Styled semantic table with an owned horizontal scroll frame.'),
+  dashboardItem('progress', 'Progress', 'Styled native progress with an indeterminate scan state.'),
   dashboardItem('skeleton', 'Skeleton', 'Reduced-motion-aware loading placeholder.'),
   dashboardItem('empty-state', 'Empty state', 'Centered empty-state composition with one primary action.'),
   dashboardItem('banner', 'Banner', 'Persistent information, success, warning, and danger notice.')
 ];
 
 const experience: readonly RegistryItem[] = [
+  {
+    name: 'scroll-director',
+    title: 'Scroll director',
+    description:
+      'Space.js SmoothSkew-style kinetic scroll response on native scrolling, plus modal scroll lock and anchor glides.',
+    category: 'experience',
+    files: [{ source: 'scroll-director.tsx', target: 'scroll-director.tsx', location: 'components' }],
+    registryDependencies: ['styles'],
+    dependencies: {}
+  },
+  {
+    name: 'decode-text',
+    title: 'Decode text',
+    description: 'Text that scrambles into place on first view; screen readers always get the real text.',
+    category: 'experience',
+    files: [{ source: 'decode-text.tsx', target: 'decode-text.tsx', location: 'components' }],
+    registryDependencies: ['styles', 'cn'],
+    dependencies: {}
+  },
+  {
+    name: 'ticker',
+    title: 'Ticker',
+    description: 'Seamless hairline status stream that pauses on hover and rests under reduced motion.',
+    category: 'experience',
+    files: [{ source: 'ticker.tsx', target: 'ticker.tsx', location: 'components' }],
+    registryDependencies: ['styles', 'cn'],
+    dependencies: {}
+  },
+  {
+    name: 'section-rail',
+    title: 'Section rail',
+    description: 'Fixed section-progress ticks in difference blend, tracking the section nearest center.',
+    category: 'experience',
+    files: [{ source: 'section-rail.tsx', target: 'section-rail.tsx', location: 'components' }],
+    registryDependencies: ['styles', 'cn'],
+    dependencies: {}
+  },
   {
     name: 'panel',
     title: 'Space panel',
