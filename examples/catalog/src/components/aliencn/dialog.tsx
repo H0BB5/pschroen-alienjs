@@ -51,6 +51,11 @@ export function Dialog({
       onClose={() => {
         if (open) onOpenChange(false);
       }}
+      onClick={(event) => {
+        // Content clicks target children; only backdrop clicks target the
+        // dialog element itself, so this is native light dismissal.
+        if (event.target === event.currentTarget) onOpenChange(false);
+      }}
     >
       <header className="aliencn-dialog__header">
         <h2 id={titleId} className="aliencn-dialog__title">{title}</h2>

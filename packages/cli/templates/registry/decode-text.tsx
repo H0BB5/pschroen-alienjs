@@ -19,7 +19,7 @@ export interface DecodeTextProps extends React.HTMLAttributes<HTMLSpanElement> {
  */
 export function DecodeText({
   text,
-  duration = 700,
+  duration = 900,
   glyphs = '#[]<>/\\=+*x10',
   className,
   ...props
@@ -37,11 +37,16 @@ export function DecodeText({
 
     let frame = 0;
     let started = 0;
+    // The string stays fully scrambled for the hold phase, then resolves
+    // left to right on a smoothstep so the front edge never outruns the eye.
+    const hold = 0.18;
 
     const step = (now: number): void => {
       if (!started) started = now;
-      const progress = Math.min(1, (now - started) / duration);
-      const resolved = Math.floor(progress * text.length);
+      const raw = Math.min(1, (now - started) / duration);
+      const sweep = raw <= hold ? 0 : (raw - hold) / (1 - hold);
+      const eased = sweep * sweep * (3 - 2 * sweep);
+      const resolved = raw >= 1 ? text.length : Math.floor(eased * text.length);
       let output = text.slice(0, resolved);
       for (let index = resolved; index < text.length; index += 1) {
         const character = text[index] ?? '';
@@ -49,7 +54,7 @@ export function DecodeText({
           character === ' ' ? ' ' : glyphs[Math.floor(Math.random() * glyphs.length)];
       }
       setDisplay(output);
-      if (progress < 1) frame = requestAnimationFrame(step);
+      if (raw < 1) frame = requestAnimationFrame(step);
     };
 
     const observer = new IntersectionObserver((entries) => {

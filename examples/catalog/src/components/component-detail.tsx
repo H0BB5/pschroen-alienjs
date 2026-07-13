@@ -25,7 +25,7 @@ import { AlienPanel } from '@/components/aliencn/panel';
 import { Progress } from '@/components/aliencn/progress';
 import { Select } from '@/components/aliencn/select';
 import { Separator } from '@/components/aliencn/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/aliencn/table';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/aliencn/table';
 import { Textarea } from '@/components/aliencn/textarea';
 import { Ticker } from '@/components/aliencn/ticker';
 import { toast } from '@/components/aliencn/toast';
@@ -104,14 +104,17 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
         </Link>
         <span className="detail-topbar__meta">
           <span className="detail-topbar__keys" aria-hidden="true">← → NAVIGATE / ESC INDEX</span>
-          UNIT {registryNumber(entry.slug)} / {String(REGISTRY.length).padStart(2, '0')}
+          <DecodeText
+            key={entry.slug}
+            text={`UNIT ${registryNumber(entry.slug)} / ${String(REGISTRY.length).padStart(2, '0')}`}
+          />
         </span>
       </header>
 
       <article className="detail-body">
         <header className="detail-head">
           <p className="catalog-eyebrow detail-head__eyebrow">
-            <span>{entry.category === 'experience' ? 'EXPERIENTIAL UNIT' : 'DASHBOARD UNIT'}</span>
+            <DecodeText key={`${entry.slug}-kind`} text={entry.category === 'experience' ? 'EXPERIENTIAL UNIT' : 'DASHBOARD UNIT'} />
             <Badge tone={entry.status === 'stable' ? 'success' : 'info'}>{entry.status}</Badge>
           </p>
           <h1 className="detail-title" style={{ viewTransitionName: `comp-${entry.slug}` }}>
@@ -139,8 +142,8 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
 
         <section className="detail-bench" aria-label={`${entry.name} test bench`}>
           <div className="detail-bench__head">
-            <span>TEST BENCH</span>
-            <span>LIVE UNIT</span>
+            <span><DecodeText text="TEST BENCH" /></span>
+            <span><DecodeText text="LIVE UNIT" /></span>
           </div>
           <div className="detail-bench__stage">
             <UnitDemo slug={entry.slug} />
@@ -149,8 +152,8 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
 
         <section className="detail-code" aria-label="Usage">
           <div className="detail-code__head">
-            <span>USAGE</span>
-            <span>SOURCE OWNED</span>
+            <span><DecodeText text="USAGE" /></span>
+            <span><DecodeText text="SOURCE OWNED" /></span>
           </div>
           <pre><code>{entry.code}</code></pre>
         </section>
@@ -370,41 +373,9 @@ function UnitDemo({ slug }: Readonly<{ slug: string }>): React.JSX.Element {
     case 'alert-dialog':
       return <AlertDialogDemo />;
     case 'table':
-      return (
-        <Table className="detail-demo-table">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Node</TableHead>
-              <TableHead>State</TableHead>
-              <TableHead className="aliencn-table__cell--numeric">Drift</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>Alpha</TableCell>
-              <TableCell>Nominal</TableCell>
-              <TableCell numeric>0.42</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Beta</TableCell>
-              <TableCell>Scanning</TableCell>
-              <TableCell numeric>0.78</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Gamma</TableCell>
-              <TableCell>Drift</TableCell>
-              <TableCell numeric>1.04</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      );
+      return <TableDemo />;
     case 'progress':
-      return (
-        <div className="detail-demo-stack">
-          <Progress value={64} label="Buffering" />
-          <Progress label="Scanning" />
-        </div>
-      );
+      return <ProgressDemo />;
     case 'scroll-director':
       return (
         <p className="detail-demo-note">
@@ -533,5 +504,132 @@ function SectionRailPreview(): React.JSX.Element {
       <a href="#systems"><span aria-hidden="true" /><span>02</span></a>
       <a href="#states"><span aria-hidden="true" /><span>03</span></a>
     </nav>
+  );
+}
+
+const DEMO_NODES = [
+  { node: 'Alpha', state: 'Nominal', drift: 0.42 },
+  { node: 'Beta', state: 'Scanning', drift: 0.78 },
+  { node: 'Gamma', state: 'Drift', drift: 1.04 },
+  { node: 'Delta', state: 'Idle', drift: 0.11 }
+] as const;
+
+type NodeKey = 'node' | 'state' | 'drift';
+
+function TableDemo(): React.JSX.Element {
+  const [sort, setSort] = React.useState<{ key: NodeKey; direction: 'ascending' | 'descending' }>({
+    key: 'node',
+    direction: 'ascending'
+  });
+  const [selected, setSelected] = React.useState<ReadonlySet<string>>(new Set());
+
+  const rows = [...DEMO_NODES].sort((a, b) => {
+    const left = a[sort.key];
+    const right = b[sort.key];
+    const order = left < right ? -1 : left > right ? 1 : 0;
+    return sort.direction === 'ascending' ? order : -order;
+  });
+
+  const toggle = (node: string): void => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(node)) next.delete(node);
+      else next.add(node);
+      return next;
+    });
+  };
+
+  const sortBy = (key: NodeKey): void => {
+    setSort((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'ascending' ? 'descending' : 'ascending'
+    }));
+  };
+
+  const header = (key: NodeKey, text: string, numeric = false): React.JSX.Element => (
+    <TableHead
+      aria-sort={sort.key === key ? sort.direction : undefined}
+      className={numeric ? 'aliencn-table__cell--numeric' : undefined}
+    >
+      <button type="button" className="aliencn-table__sort" onClick={() => sortBy(key)}>
+        {text}
+      </button>
+    </TableHead>
+  );
+
+  return (
+    <div className="detail-demo-stack detail-demo-tables">
+      <Table className="detail-demo-table">
+        <TableCaption>
+          {selected.size > 0 ? `${selected.size} node(s) selected` : 'Sortable columns / selectable rows'}
+        </TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="detail-demo-table__pick" aria-label="Select" />
+            {header('node', 'Node')}
+            {header('state', 'State')}
+            {header('drift', 'Drift', true)}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.node} data-state={selected.has(row.node) ? 'selected' : undefined}>
+              <TableCell className="detail-demo-table__pick">
+                <Checkbox
+                  checked={selected.has(row.node)}
+                  onChange={() => toggle(row.node)}
+                  aria-label={`Select ${row.node}`}
+                />
+              </TableCell>
+              <TableCell>{row.node}</TableCell>
+              <TableCell>{row.state}</TableCell>
+              <TableCell numeric>{row.drift.toFixed(2)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <Table className="detail-demo-table aliencn-table--zebra aliencn-table--compact">
+        <TableCaption>Zebra / compact variant</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Channel</TableHead>
+            <TableHead>Mode</TableHead>
+            <TableHead className="aliencn-table__cell--numeric">RX</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow><TableCell>01</TableCell><TableCell>Spectral</TableCell><TableCell numeric>0.82</TableCell></TableRow>
+          <TableRow><TableCell>02</TableCell><TableCell>Dark field</TableCell><TableCell numeric>0.64</TableCell></TableRow>
+          <TableRow><TableCell>03</TableCell><TableCell>Telemetry</TableCell><TableCell numeric>0.97</TableCell></TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function ProgressDemo(): React.JSX.Element {
+  const [value, setValue] = React.useState(12);
+
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      setValue((current) => (current >= 100 ? 0 : Math.min(100, current + Math.ceil(Math.random() * 7))));
+    }, 180);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <div className="detail-demo-stack">
+      <div className="detail-demo-progress-row">
+        <span className="detail-demo-variant">BUFFERING</span>
+        <span className="detail-demo-progress-value">{String(value).padStart(3, '0')}%</span>
+      </div>
+      <Progress value={value} label="Buffering" />
+      <div className="detail-demo-progress-row">
+        <span className="detail-demo-variant">SCANNING</span>
+        <span className="detail-demo-progress-value">---</span>
+      </div>
+      <Progress label="Scanning" />
+    </div>
   );
 }

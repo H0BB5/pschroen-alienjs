@@ -373,7 +373,7 @@ export function Catalog(): React.JSX.Element {
             <Card className="catalog-system-card" data-reveal>
               <CardHeader>
                 <div className="catalog-card-meta">
-                  <span>FIELD / A</span>
+                  <DecodeText text="FIELD / A" />
                   <Badge tone={linked ? 'success' : 'warning'}>{linked ? 'Live' : 'Idle'}</Badge>
                 </div>
                 <CardTitle>Telemetry viewport</CardTitle>
@@ -394,8 +394,8 @@ export function Catalog(): React.JSX.Element {
 
             <div className="catalog-panel-frame" data-reveal data-reveal-i="1">
               <div className="catalog-panel-frame__head">
-                <span>SPACE.JS / PANEL</span>
-                <span>DEV TOOL</span>
+                <span><DecodeText text="SPACE.JS / PANEL" /></span>
+                <span><DecodeText text="DEV TOOL" /></span>
               </div>
               <AlienPanel
                 items={PANEL_ITEMS}
@@ -490,11 +490,11 @@ export function Catalog(): React.JSX.Element {
       </div>
 
       <footer className="catalog-footer" data-kinetic="">
-        <span>ALIENCN / SOURCE OWNED / 2026</span>
+        <span><DecodeText text="ALIENCN / SOURCE OWNED / 2026" /></span>
         <span className="catalog-footer__clock">
           <LiveClock /> / SECTOR 7G
         </span>
-        <span>ALIEN.JS × SPACE.JS × KYA</span>
+        <span><DecodeText text="ALIEN.JS × SPACE.JS × KYA" /></span>
       </footer>
 
       <Dialog
@@ -846,14 +846,14 @@ function Lines({ lines }: Readonly<{ lines: readonly string[] }>): React.JSX.Ele
 function SectionIndex({ number, label }: Readonly<{ number: string; label: string }>): React.JSX.Element {
   return (
     <div className="catalog-section-index" aria-hidden="true">
-      <span>{number}</span>
-      <span>{label}</span>
+      <span><DecodeText text={number} /></span>
+      <span><DecodeText text={label} /></span>
     </div>
   );
 }
 
-function RackLabel({ children }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
-  return <span className="catalog-rack-label">{children}</span>;
+function RackLabel({ children }: Readonly<{ children: string }>): React.JSX.Element {
+  return <span className="catalog-rack-label"><DecodeText text={children} /></span>;
 }
 
 function Telemetry({ label, children }: Readonly<{ label: string; children: React.ReactNode }>): React.JSX.Element {

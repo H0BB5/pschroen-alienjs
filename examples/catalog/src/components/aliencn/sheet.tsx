@@ -58,6 +58,10 @@ export function Sheet({
       onClose={() => {
         if (open) onOpenChange(false);
       }}
+      onClick={(event) => {
+        // Only backdrop clicks target the dialog element itself.
+        if (event.target === event.currentTarget) onOpenChange(false);
+      }}
     >
       <header className="aliencn-sheet__header">
         <div className="aliencn-sheet__heading">
