@@ -42,6 +42,7 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
   const index = REGISTRY.findIndex((candidate) => candidate.slug === slug);
   const router = useTransitionRouter();
   const navLockRef = React.useRef(0);
+  const [replayKey, setReplayKey] = React.useState(0);
 
   const previousSlug = REGISTRY[(index + REGISTRY.length - 1) % REGISTRY.length]?.slug;
   const nextSlug = REGISTRY[(index + 1) % REGISTRY.length]?.slug;
@@ -143,10 +144,19 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
         <section className="detail-bench" aria-label={`${entry.name} test bench`}>
           <div className="detail-bench__head">
             <span><DecodeText text="TEST BENCH" /></span>
-            <span><DecodeText text="LIVE UNIT" /></span>
+            <span className="detail-bench__meta">
+              <button
+                type="button"
+                className="detail-bench__replay"
+                onClick={() => setReplayKey((current) => current + 1)}
+              >
+                <span aria-hidden="true">↻</span> REPLAY
+              </button>
+              <DecodeText text="LIVE UNIT" />
+            </span>
           </div>
           <div className="detail-bench__stage">
-            <UnitDemo slug={entry.slug} />
+            <UnitDemo key={replayKey} slug={entry.slug} />
           </div>
         </section>
 

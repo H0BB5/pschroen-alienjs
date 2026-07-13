@@ -1157,3 +1157,37 @@ a { color: inherit; text-decoration: none; }
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
 }
+
+.detail-bench__meta {
+  align-items: center;
+  display: inline-flex;
+  gap: 1.25rem;
+}
+
+.detail-bench__replay {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--aliencn-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font: 500 0.5rem/1 var(--aliencn-mono);
+  gap: 0.35rem;
+  letter-spacing: 0.12em;
+  padding: 0.2rem 0;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.detail-bench__replay:hover { color: var(--aliencn-signal); }
+
+.detail-bench__replay:focus-visible {
+  outline: 1px solid var(--aliencn-signal);
+  outline-offset: 2px;
+}
+
+.detail-bench__replay span { font-size: 0.7rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .detail-bench__replay:active span { display: inline-block; transform: rotate(180deg); transition: transform 0.25s var(--aliencn-ease); }
+}
