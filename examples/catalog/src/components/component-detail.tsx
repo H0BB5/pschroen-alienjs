@@ -619,22 +619,39 @@ function TableDemo(): React.JSX.Element {
 }
 
 function ProgressDemo(): React.JSX.Element {
-  const [value, setValue] = React.useState(12);
+  const [value, setValue] = React.useState(8);
+  const [cycle, setCycle] = React.useState(0);
 
   React.useEffect(() => {
-    const id = window.setInterval(() => {
-      setValue((current) => (current >= 100 ? 0 : Math.min(100, current + Math.ceil(Math.random() * 7))));
-    }, 180);
-    return () => window.clearInterval(id);
+    let frame = 0;
+    let last = performance.now();
+    let current = 8;
+
+    // Continuous per-frame advance with a slowly drifting pace reads as a
+    // real transfer; discrete random steps fight the fill transition and
+    // look janky.
+    const tick = (now: number): void => {
+      const delta = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      current += (15 + Math.sin(now / 900) * 6) * delta;
+      if (current >= 100) {
+        current = 0;
+        setCycle((count) => count + 1);
+      }
+      setValue(current);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   return (
     <div className="detail-demo-stack">
       <div className="detail-demo-progress-row">
         <span className="detail-demo-variant">BUFFERING</span>
-        <span className="detail-demo-progress-value">{String(value).padStart(3, '0')}%</span>
+        <span className="detail-demo-progress-value">{String(Math.round(value)).padStart(3, '0')}%</span>
       </div>
-      <Progress value={value} label="Buffering" />
+      <Progress key={cycle} value={value} max={100} label="Buffering" />
       <div className="detail-demo-progress-row">
         <span className="detail-demo-variant">SCANNING</span>
         <span className="detail-demo-progress-value">---</span>

@@ -1369,3 +1369,7 @@ th[aria-sort="descending"] .aliencn-table__sort::after { color: var(--aliencn-si
     background-size: 40% 100%;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .aliencn-progress::-webkit-progress-value { transition-duration: 0.01ms; }
+}
