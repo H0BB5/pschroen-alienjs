@@ -3,7 +3,16 @@
 import { Link } from 'next-view-transitions';
 import * as React from 'react';
 
+import { AlertDialog } from '@/components/aliencn/alert-dialog';
 import { Badge } from '@/components/aliencn/badge';
+import { Checkbox } from '@/components/aliencn/checkbox';
+import { Label } from '@/components/aliencn/label';
+import { Progress } from '@/components/aliencn/progress';
+import { Select } from '@/components/aliencn/select';
+import { Separator } from '@/components/aliencn/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/aliencn/table';
+import { Textarea } from '@/components/aliencn/textarea';
+import { Tooltip } from '@/components/aliencn/tooltip';
 import { DecodeText } from '@/components/aliencn/decode-text';
 import { SectionRail } from '@/components/aliencn/section-rail';
 import { Ticker } from '@/components/aliencn/ticker';
@@ -65,7 +74,34 @@ const TAB_ITEMS = [
   {
     value: 'field',
     label: 'Field',
-    content: <p>Low-frequency deformation is mapped across the viewport plane.</p>
+    content: (
+      <Table className="catalog-node-table">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Node</TableHead>
+            <TableHead>State</TableHead>
+            <TableHead className="aliencn-table__cell--numeric">Drift</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Alpha</TableCell>
+            <TableCell>Nominal</TableCell>
+            <TableCell numeric>0.42</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Beta</TableCell>
+            <TableCell>Scanning</TableCell>
+            <TableCell numeric>0.78</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Gamma</TableCell>
+            <TableCell>Drift</TableCell>
+            <TableCell numeric>1.04</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    )
   },
   {
     value: 'trace',
@@ -89,7 +125,7 @@ const TICKER_ITEMS = [
   'Noise 0.78',
   'Coherence 0.82',
   'Registry 0013',
-  '14 units indexed',
+  '28 units indexed',
   'Field nominal',
   'Source owned'
 ] as const;
@@ -107,6 +143,7 @@ export function Catalog(): React.JSX.Element {
   const [showBanner, setShowBanner] = React.useState(true);
   const [panelError, setPanelError] = React.useState<string>();
   const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [abortOpen, setAbortOpen] = React.useState(false);
   const [fx, setFx] = React.useState({ scan: true, grid: true });
   const [draft, setDraft] = React.useState<FieldConfig>({ linked: false, scan: true, grid: true });
 
@@ -275,7 +312,7 @@ export function Catalog(): React.JSX.Element {
                 <Button>Primary</Button>
                 <Button tone="secondary">Secondary</Button>
                 <Button tone="ghost">Ghost</Button>
-                <Button tone="danger">Abort</Button>
+                <Button tone="danger" onClick={() => setAbortOpen(true)}>Abort</Button>
                 <Button loading>Resolving</Button>
                 <Button disabled>Offline</Button>
               </div>
@@ -290,10 +327,12 @@ export function Catalog(): React.JSX.Element {
                 <Badge tone="warning">Drift</Badge>
                 <Badge tone="danger">Fault</Badge>
               </div>
+              <Separator dashed className="catalog-cell-sep" />
               <div className="catalog-switch-row">
                 <Switch variant="system" checked={linked} onCheckedChange={setLinked} label="Spectral link" />
                 <span>{linked ? '01' : '00'}</span>
               </div>
+              <Checkbox defaultChecked label="Persist telemetry" className="catalog-cell-checkbox" />
             </div>
 
             <div className="catalog-rack__cell catalog-rack__cell--input" data-reveal data-reveal-i="2">
@@ -311,6 +350,18 @@ export function Catalog(): React.JSX.Element {
                 error="Coordinate checksum is incomplete."
                 inputProps={{ defaultValue: 'x-41/' }}
               />
+              <div className="catalog-field-group">
+                <Label htmlFor="catalog-target">Target field</Label>
+                <Select id="catalog-target" defaultValue="a">
+                  <option value="a">Spectral field A</option>
+                  <option value="b">Spectral field B</option>
+                  <option value="d">Dark field</option>
+                </Select>
+              </div>
+              <div className="catalog-field-group">
+                <Label htmlFor="catalog-notes">Transmission notes</Label>
+                <Textarea id="catalog-notes" rows={2} placeholder="Envelope holding at 0.82 coherence." />
+              </div>
             </div>
           </div>
         </section>
@@ -335,7 +386,9 @@ export function Catalog(): React.JSX.Element {
               </CardContent>
               <CardFooter>
                 <span className="catalog-footer-code"><LiveSignal linked={linked} /></span>
-                <Button size="sm" tone="ghost">Inspect trace</Button>
+                <Tooltip content="Opens the last operator event at 08:42:16 UTC.">
+                  <Button size="sm" tone="ghost">Inspect trace</Button>
+                </Tooltip>
               </CardFooter>
             </Card>
 
@@ -394,6 +447,8 @@ export function Catalog(): React.JSX.Element {
                 <CardDescription>Skeleton, flat card, and progressive loading states.</CardDescription>
               </CardHeader>
               <CardContent className="catalog-loading-stack">
+                <Progress value={74} label="Buffering" />
+                <Progress label="Scanning" />
                 <Skeleton className="catalog-skeleton catalog-skeleton--hero" />
                 <Skeleton className="catalog-skeleton catalog-skeleton--medium" />
                 <Skeleton className="catalog-skeleton catalog-skeleton--short" />
@@ -466,6 +521,20 @@ export function Catalog(): React.JSX.Element {
           can be terminated at any time.
         </p>
       </Dialog>
+
+      <AlertDialog
+        open={abortOpen}
+        onOpenChange={setAbortOpen}
+        title="Abort sequence"
+        description="The current spectral pass will be discarded."
+        actionLabel="Abort"
+        onAction={() => {
+          setLinked(false);
+          toast('Sequence aborted. Spectral link severed.', { tone: 'warning' });
+        }}
+      >
+        <p className="catalog-dialog-copy">Telemetry captured so far stays on this device.</p>
+      </AlertDialog>
 
       <Sheet
         open={sheetOpen}
