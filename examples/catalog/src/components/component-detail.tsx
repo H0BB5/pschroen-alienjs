@@ -41,19 +41,52 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
   const entry = getRegistryEntry(slug);
   const index = REGISTRY.findIndex((candidate) => candidate.slug === slug);
   const router = useTransitionRouter();
+  const navLockRef = React.useRef(0);
+
+  const previousSlug = REGISTRY[(index + REGISTRY.length - 1) % REGISTRY.length]?.slug;
+  const nextSlug = REGISTRY[(index + 1) % REGISTRY.length]?.slug;
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      // Open dialogs and sheets own Escape; text fields keep it for blurring.
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+        return;
+      }
+      if (event.key !== 'Escape' && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
+      // Open dialogs and sheets own the keyboard while in the top layer.
       if (document.querySelector('dialog[open]')) return;
+      // Leave keys alone inside anything that uses them: text fields keep
+      // carets, selects and tablists keep arrow navigation.
       const target = event.target;
-      if (target instanceof HTMLElement && target.closest('input, textarea, select')) return;
-      router.push('/');
+      if (
+        target instanceof HTMLElement &&
+        target.closest(
+          'input, textarea, select, [contenteditable="true"], [role="tablist"], [role="slider"], [role="radiogroup"], audio, video'
+        )
+      ) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        router.push('/');
+        return;
+      }
+
+      // Debounce rapid presses so a held key does not spam history while a
+      // view transition is still playing.
+      const now = performance.now();
+      if (now - navLockRef.current < 300) return;
+      navLockRef.current = now;
+
+      const destination = event.key === 'ArrowLeft' ? previousSlug : nextSlug;
+      if (destination) {
+        event.preventDefault();
+        router.push(`/component/${destination}`);
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [router]);
+  }, [nextSlug, previousSlug, router]);
 
   if (!entry || index < 0) return null;
 
@@ -70,6 +103,7 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
           <span aria-hidden="true">←</span> REGISTRY / 0013
         </Link>
         <span className="detail-topbar__meta">
+          <span className="detail-topbar__keys" aria-hidden="true">← → NAVIGATE / ESC INDEX</span>
           UNIT {registryNumber(entry.slug)} / {String(REGISTRY.length).padStart(2, '0')}
         </span>
       </header>

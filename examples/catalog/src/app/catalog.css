@@ -1131,3 +1131,12 @@ a { color: inherit; text-decoration: none; }
 .catalog-field-group { display: grid; gap: 0.5rem; margin-top: 1.25rem; }
 .catalog-node-table { min-width: 100%; }
 .catalog-loading-stack .aliencn-progress + .aliencn-progress { margin-top: -0.2rem; }
+
+.detail-topbar__keys {
+  color: var(--aliencn-text-faint);
+  margin-right: 1.5rem;
+}
+
+@media (max-width: 64rem) {
+  .detail-topbar__keys { display: none; }
+}
