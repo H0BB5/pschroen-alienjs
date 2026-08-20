@@ -1,0 +1,30 @@
+/* Aliencn theme preset: carbon.
+   Neutral graphite instrumentation. Replaces the spectral green signal with
+   ice cyan and desaturates every optical surface. Applied after aliencn.css;
+   explicit data-aliencn-theme attributes still win. */
+:root {
+  --aliencn-canvas: #0a0b0d;
+  --aliencn-surface: rgb(15 17 20 / 0.9);
+  --aliencn-surface-raised: #14171b;
+  --aliencn-surface-active: #1d2127;
+  --aliencn-text: #e8eaed;
+  --aliencn-text-muted: #8d939c;
+  --aliencn-text-faint: #565c66;
+  --aliencn-border: rgb(232 234 237 / 0.13);
+  --aliencn-border-strong: rgb(232 234 237 / 0.36);
+  --aliencn-accent: #eef1f4;
+  --aliencn-accent-hover: #ffffff;
+  --aliencn-accent-soft: rgb(154 220 255 / 0.12);
+  --aliencn-signal: #9adcff;
+  --aliencn-on-accent: #0a0b0d;
+  --aliencn-info: #9adcff;
+  --aliencn-info-soft: rgb(154 220 255 / 0.07);
+  --aliencn-success: #a7f0c2;
+  --aliencn-success-soft: rgb(167 240 194 / 0.07);
+  --aliencn-warning: #ffd47d;
+  --aliencn-warning-soft: rgb(255 212 125 / 0.07);
+  --aliencn-danger: #ff8a97;
+  --aliencn-danger-soft: rgb(255 138 151 / 0.07);
+  --aliencn-shadow: 0 28px 80px rgb(0 0 0 / 0.6), 0 0 42px rgb(154 220 255 / 0.03);
+  --aliencn-grid: rgb(232 234 237 / 0.03);
+}

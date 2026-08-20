@@ -1,30 +1,44 @@
-import { Command } from 'commander';
-
-import { init } from './commands/init.js';
-import { add } from './commands/add.js';
-
-const program = new Command();
-
-program
-    .name('alien')
-    .description('CLI for adding alien-ui components to your project')
-    .version('0.1.0');
-
-program
-    .command('init')
-    .description('Initialize alien-ui in your project')
-    .option('--dir <path>', 'Component directory')
-    .option('--typescript', 'Use TypeScript')
-    .option('--no-typescript', 'Use JavaScript')
-    .option('--three', 'Enable three.js support')
-    .option('--no-three', 'Disable three.js support')
-    .action(init);
-
-program
-    .command('add')
-    .description('Add a component to your project')
-    .argument('<component>', 'Component name (e.g. panel)')
-    .option('--overwrite', 'Overwrite existing files without prompting')
-    .action(add);
-
-program.parse();
+export { createProgram, runCli } from './cli.js';
+export type { CliIO } from './cli.js';
+export { CONFIG_FILE, CONFIG_SCHEMA_URL, readConfig, requireConfig } from './config.js';
+export { AliencnError } from './errors.js';
+export type { AliencnErrorCode } from './errors.js';
+export {
+  addComponents,
+  diffComponents,
+  doctor,
+  initProject,
+  listComponents
+} from './operations.js';
+export type { AddResult, DiffEntry, InitResult, ListEntry } from './operations.js';
+export {
+  collectPackageDependencies,
+  getRegistryItem,
+  publicRegistryItems,
+  registry,
+  resolveRegistryItems
+} from './registry.js';
+export { renderRegistryItems } from './templates.js';
+export type {
+  AddOptions,
+  AliencnConfig,
+  ConfirmHandler,
+  DiffOptions,
+  DoctorCheck,
+  DoctorReport,
+  FileAction,
+  Framework,
+  InitOptions,
+  Language,
+  ListOptions,
+  PackageManager,
+  PackageJson,
+  PlannedFile,
+  ProjectInfo,
+  RegistryCategory,
+  RegistryFile,
+  RegistryItem,
+  RegistryLocation,
+  RenderedFile,
+  WriteSummary
+} from './types.js';

@@ -1,5 +1,8 @@
 node_modules
 dist
+.next
+*.tsbuildinfo
+examples/catalog/next-env.d.ts
 *.tgz
 .DS_Store
 
@@ -13,3 +16,4 @@ alien-cli-mvp-spec.md
 
 # Claude Code local settings
 .claude/
+coverage

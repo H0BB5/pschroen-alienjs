@@ -1,30 +1,90 @@
 {
-    "name": "@hobbs/alien-cli",
-    "version": "0.1.0",
-    "description": "CLI for adding alien-ui components to your project",
-    "type": "module",
-    "bin": {
-        "alien": "./dist/index.js"
+  "name": "aliencn",
+  "version": "0.2.0",
+  "description": "A source-first component registry and CLI for React, Space.js, and Alien.js projects",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
-    "files": [
-        "dist",
-        "templates"
-    ],
-    "scripts": {
-        "build": "tsup",
-        "dev": "tsup --watch"
-    },
-    "dependencies": {
-        "commander": "^12.0.0",
-        "@inquirer/prompts": "^7.0.0",
-        "chalk": "^5.3.0",
-        "ora": "^8.0.0",
-        "fs-extra": "^11.2.0"
-    },
-    "devDependencies": {
-        "@types/fs-extra": "^11.0.0",
-        "tsup": "^8.0.0",
-        "typescript": "^5.3.0"
-    },
-    "license": "MIT"
+    "./schema.json": "./schema.json"
+  },
+  "bin": {
+    "aliencn": "./dist/bin.js",
+    "alien": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "schema.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run test/unit",
+    "test:integration": "vitest run test/integration",
+    "test:e2e": "vitest run test/e2e",
+    "pack:check": "node scripts/validate-pack.mjs"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.10.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "diff": "^8.0.2",
+    "semver": "^7.8.5",
+    "typescript": "^5.9.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@alienkitty/alien.js": "^1.2.0",
+    "@alienkitty/space.js": "^1.2.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/semver": "^7.7.1",
+    "@types/three": "^0.185.1",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^4.1.10",
+    "next": "^16.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.185.1",
+    "tsup": "^8.5.1",
+    "vite": "^7.0.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "keywords": [
+    "alien.js",
+    "components",
+    "react",
+    "registry",
+    "shadcn",
+    "space.js",
+    "webgl"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/H0BB5/pschroen-alienjs.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/H0BB5/pschroen-alienjs/issues"
+  },
+  "homepage": "https://github.com/H0BB5/pschroen-alienjs#readme",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

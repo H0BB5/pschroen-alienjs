@@ -1,13 +1,16 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-    entry: ['src/index.ts'],
-    format: ['esm'],
-    dts: false,
-    clean: true,
-    target: 'node18',
-    splitting: false,
-    banner: {
-        js: '#!/usr/bin/env node',
-    },
+  entry: {
+    index: 'src/index.ts',
+    bin: 'src/bin.ts'
+  },
+  format: ['esm'],
+  dts: true,
+  clean: true,
+  target: 'node20',
+  platform: 'node',
+  splitting: false,
+  sourcemap: true,
+  treeshake: true
 });
