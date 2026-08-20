@@ -1,7 +1,7 @@
-export type Framework = 'next' | 'vite' | 'react';
+export type Framework = 'next' | 'vite' | 'react' | 'static';
 export type Language = 'ts' | 'js';
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
-export type RegistryCategory = 'foundation' | 'dashboard' | 'experience';
+export type RegistryCategory = 'foundation' | 'dashboard' | 'experience' | 'motion';
 export type RegistryLocation = 'components' | 'utils' | 'styles';
 
 export interface AliencnConfig {
@@ -55,6 +55,12 @@ export interface RegistryFile {
   target: string;
   location: RegistryLocation;
   preserve?: boolean;
+  /**
+   * Copies the template byte-for-byte: no import rewriting, no option
+   * templating, no TypeScript transpilation, and no extension rewrite.
+   * Used for vendored framework-agnostic vanilla assets.
+   */
+  verbatim?: boolean;
 }
 
 export interface RegistryOption {

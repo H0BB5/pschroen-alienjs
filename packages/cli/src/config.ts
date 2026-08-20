@@ -28,7 +28,7 @@ export const aliencnConfigSchema = z
   .object({
     $schema: z.string().url().optional(),
     version: z.literal(1),
-    framework: z.enum(['next', 'vite', 'react']),
+    framework: z.enum(['next', 'vite', 'react', 'static']),
     language: z.enum(['ts', 'js']),
     theme: z.string().min(1).optional(),
     paths: z.object({

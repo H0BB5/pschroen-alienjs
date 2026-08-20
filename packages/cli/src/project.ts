@@ -117,7 +117,7 @@ export function detectFramework(packageJson: PackageJson): Framework {
 
   throw new AliencnError(
     'PROJECT_UNSUPPORTED',
-    'Aliencn requires a React project. Add React or pass --framework after confirming the target.'
+    'Aliencn requires a React project. Add React or pass --framework after confirming the target (use --framework static for a plain site that only consumes vanilla families such as motion).'
   );
 }
 

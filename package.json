@@ -7,19 +7,19 @@
     "examples/catalog"
   ],
   "scripts": {
-    "build": "npm run build --workspace aliencn",
-    "typecheck": "npm run typecheck --workspace aliencn",
-    "test": "npm run build && npm run test --workspace aliencn",
-    "test:coverage": "npm run build && npm run test:coverage --workspace aliencn",
-    "test:unit": "npm run test:unit --workspace aliencn",
-    "test:integration": "npm run test:integration --workspace aliencn",
-    "test:e2e": "npm run build && npm run test:e2e --workspace aliencn",
-    "pack:check": "npm run build && npm run pack:check --workspace aliencn",
+    "build": "npm run build --workspace @kya-os/aliencn",
+    "typecheck": "npm run typecheck --workspace @kya-os/aliencn",
+    "test": "npm run build && npm run test --workspace @kya-os/aliencn",
+    "test:coverage": "npm run build && npm run test:coverage --workspace @kya-os/aliencn",
+    "test:unit": "npm run test:unit --workspace @kya-os/aliencn",
+    "test:integration": "npm run test:integration --workspace @kya-os/aliencn",
+    "test:e2e": "npm run build && npm run test:e2e --workspace @kya-os/aliencn",
+    "pack:check": "npm run build && npm run pack:check --workspace @kya-os/aliencn",
     "check": "npm run typecheck && npm run test && npm run pack:check && npm run example:check",
     "example:dev": "npm run dev --workspace aliencn-catalog-example",
     "example:build": "npm run build --workspace aliencn-catalog-example",
     "example:typecheck": "npm run typecheck --workspace aliencn-catalog-example",
-    "example:sync": "npm run build --workspace aliencn && node packages/cli/dist/bin.js init --cwd examples/catalog --yes --overwrite --skip-install && node packages/cli/dist/bin.js add --cwd examples/catalog --all --yes --overwrite --skip-install",
-    "example:check": "npm run build --workspace aliencn && npm run typecheck --workspace aliencn-catalog-example && npm run build --workspace aliencn-catalog-example && node packages/cli/dist/bin.js doctor --cwd examples/catalog && node packages/cli/dist/bin.js diff --cwd examples/catalog --all"
+    "example:sync": "npm run build --workspace @kya-os/aliencn && node packages/cli/dist/bin.js init --cwd examples/catalog --yes --overwrite --skip-install && node packages/cli/dist/bin.js add --cwd examples/catalog --all --yes --overwrite --skip-install",
+    "example:check": "npm run build --workspace @kya-os/aliencn && npm run typecheck --workspace aliencn-catalog-example && npm run build --workspace aliencn-catalog-example && node packages/cli/dist/bin.js doctor --cwd examples/catalog && node packages/cli/dist/bin.js diff --cwd examples/catalog --all"
   }
 }

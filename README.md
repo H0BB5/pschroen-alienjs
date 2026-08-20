@@ -7,9 +7,11 @@ The CLI copies components into your project, where you can review and own them. 
 ## Quick start
 
 ```sh
-npx aliencn init --yes
-npx aliencn add button card input-field tabs
+npx @kya-os/aliencn init --yes
+npx @kya-os/aliencn add button card input-field tabs
 ```
+
+The package is published as `@kya-os/aliencn`; the installed binaries stay `aliencn` and `alien`.
 
 Import the generated stylesheet once from the location printed by `init`:
 
@@ -52,7 +54,7 @@ aliencn doctor
 
 Every project-mutating command accepts `--cwd` and `--dry-run`. Initialization and add support `--path`; add supports multiple names and `--all`, `--yes`, `--overwrite`, `--skip-install`, and install-time component options via `--set` (for example `aliencn add switch --set variant=system`), and offers an interactive picker when run with no names in a terminal.
 
-Theming: `aliencn init --theme carbon` or `--theme paper` applies a packaged token preset, and `--theme ./your-tokens.css` bridges an existing design system; the theme lands in a sibling `aliencn-theme.css` you own.
+Theming: `aliencn init --theme carbon`, `--theme paper`, or `--theme kya-os` applies a packaged token preset, and `--theme ./your-tokens.css` bridges an existing design system; the theme lands in a sibling `aliencn-theme.css` you own. The `kya-os` preset carries the KYA-OS light/dark token layer with its `data-theme` toggle contract.
 
 Safety is deliberate:
 
@@ -97,6 +99,13 @@ Experiential primitives:
 - `ticker`: seamless hairline status stream
 - `section-rail`: fixed section-progress ticks in difference blend
 
+Motion family (framework-agnostic):
+
+- `motion`: the vendored KYA-OS motion modules (`Title`, `GlitchText`, `SmoothScroll`, `PageTransition`, `UIUtils`) as dependency-free vanilla ES modules, copied byte-for-byte so Next.js and static sites run identical bytes
+- `motion-react`: thin React bindings (`TitleReveal`, `usePageTransition`) over those same modules, with no duplicated animation logic
+
+Static sites without React can consume the motion family via `aliencn init --framework static` followed by `aliencn add motion`.
+
 TypeScript projects also receive interim ambient declarations for the `@alienkitty` packages (which do not ship types on npm yet); delete those files once upstream releases include declarations.
 
 The visual hierarchy was informed by the Checkpoint dashboard component set, but the registry uses generic language, semantic CSS tokens, and no product-specific branding. See the [component catalog](docs/components.md).
@@ -123,7 +132,7 @@ The visual hierarchy was informed by the Checkpoint dashboard component set, but
 }
 ```
 
-Next.js, Vite React, generic React, TypeScript/JavaScript, npm, pnpm, Yarn, Bun, source roots, and `paths` aliases are detected. The schema is also packed as `aliencn/schema.json`.
+Next.js, Vite React, generic React, TypeScript/JavaScript, npm, pnpm, Yarn, Bun, source roots, and `paths` aliases are detected. Plain static sites opt in with `--framework static`. The schema is also packed as `@kya-os/aliencn/schema.json`.
 
 ## Development
 

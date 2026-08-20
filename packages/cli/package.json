@@ -1,5 +1,5 @@
 {
-  "name": "aliencn",
+  "name": "@kya-os/aliencn",
   "version": "0.2.0",
   "description": "A source-first component registry and CLI for React, Space.js, and Alien.js projects",
   "type": "module",

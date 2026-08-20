@@ -51,6 +51,38 @@ describe('single-source templates', () => {
     expect(button?.content).not.toMatch(/:\s*ButtonProps\b/u);
   });
 
+  it('copies verbatim motion modules byte-for-byte in both languages', async () => {
+    const templateRoot = path.join(packageDirectory(), 'templates', 'registry');
+    const fixtureNames: ReadonlyArray<'next-ts' | 'vite-js'> = ['next-ts', 'vite-js'];
+    for (const fixtureName of fixtureNames) {
+      const fixture = await copyFixture(fixtureName);
+      fixtures.push(fixture);
+      const config = createConfig(await detectProject(fixture));
+      const rendered = await renderRegistryItems(
+        fixture,
+        config,
+        resolveRegistryItems(['motion'])
+      );
+      const modules = rendered.filter((file) => file.item === 'motion');
+      expect(modules.map((file) => path.posix.basename(file.relativePath)).sort()).toEqual([
+        'GlitchText.js',
+        'PageTransition.js',
+        'SmoothScroll.js',
+        'Title.js',
+        'UIUtils.js'
+      ]);
+      for (const file of modules) {
+        const source = await readFile(
+          path.join(templateRoot, 'motion', path.posix.basename(file.relativePath)),
+          'utf8'
+        );
+        expect(file.content).toBe(source);
+      }
+      const shims = rendered.filter((file) => file.item === 'motion-types');
+      expect(shims.length).toBe(config.language === 'ts' ? 5 : 0);
+    }
+  });
+
   it('keeps consumer handlers from replacing internal dialog and switch behavior', async () => {
     const templateRoot = path.join(packageDirectory(), 'templates', 'registry');
     const dialog = await readFile(path.join(templateRoot, 'dialog.tsx'), 'utf8');

@@ -125,7 +125,7 @@ const TICKER_ITEMS = [
   'Noise 0.78',
   'Coherence 0.82',
   'Registry 0013',
-  '28 units indexed',
+  '31 units indexed',
   'Field nominal',
   'Source owned'
 ] as const;

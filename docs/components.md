@@ -72,8 +72,23 @@ Fixed section-progress ticks rendered in difference blend so they read over any 
 
 `ShaderCanvas` dynamically loads Three.js and `Wobble` from `@alienkitty/alien.js/three`. It owns renderer, geometry, material, observer, and animation-frame cleanup. The Wobble output feeds a `uWobble` shader uniform that drifts the glow center and wave phase organically. Changing `color`, `speed`, or `intensity` updates uniforms in place without recreating the WebGL context, and device-pixel-ratio changes are re-applied on resize. The shader pauses entirely for reduced motion and provides an accessible image label plus a WebGL failure state announced outside the image role.
 
+## Motion family
+
+The `motion` item installs the vendored KYA-OS motion layer into `motion/` inside the component directory: `UIUtils.js`, `Title.js`, `GlitchText.js`, `SmoothScroll.js`, and `PageTransition.js`.
+They are dependency-free vanilla ES modules copied byte-for-byte (declared `verbatim` in the registry), so Next.js apps and fully static sites run identical bytes; provenance is recorded in `templates/registry/motion/README.md`.
+TypeScript projects also receive sibling `.d.ts` shims (`motion-types`), which only describe the JavaScript surface and never replace it.
+
+The `motion-react` item adds one thin wrapper, `motion-react.tsx`, exporting `TitleReveal` (letter-decrypt reveal over the vendored `Title`, honest to screen readers and reduced motion) and `usePageTransition` (mounts the vendored `FadeTransition` or `PageTransition` once per page load).
+The wrapper contains no animation logic of its own.
+
+Static sites: `aliencn init --framework static` then `aliencn add motion`, and drive the modules directly, for example `initTitles()` from `Title.js` on elements carrying `data-title-reveal`.
+
 ## Theme tokens
 
 The foundation stylesheet defines dark-default and explicit light themes, spectral status, focus, square geometry, typography, duration, grid, and optical-surface tokens. The opt-in `data-aliencn-space` root scope maps Space.js compatibility variables back to those same tokens, including its original compact typography, Viridis graph range, invert, and panel variables.
 
-Theme presets (`aliencn init --theme carbon|paper`) and custom token stylesheets (`--theme ./tokens.css`) are written to `aliencn-theme.css` and imported after the foundation, so they override default tokens while explicit `data-aliencn-theme` attributes keep working.
+Theme presets (`aliencn init --theme carbon|paper|kya-os`) and custom token stylesheets (`--theme ./tokens.css`) are written to `aliencn-theme.css` and imported after the foundation, so they override default tokens while explicit `data-aliencn-theme` attributes keep working.
+
+The `kya-os` preset is the KYA-OS house token layer ported from the community hub (`site/lib/theme.mjs`): light tokens on `:root`, the same dark token block under both `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }` and `:root[data-theme="dark"]`.
+Its toggle contract: set `data-theme="light"` or `data-theme="dark"` on `document.documentElement` to force a theme, and remove the attribute to follow the OS preference.
+The tokens use the KYA-OS site namespace (`--page`, `--ink`, `--accent`, ...) and ride alongside the `--aliencn-*` foundation without overriding it.

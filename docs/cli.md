@@ -10,7 +10,9 @@ Next.js projects without an App Router `app` directory receive the stylesheet in
 
 Options: `--cwd`, `--path`, `--framework`, `--theme`, `--typescript`, `--javascript`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`.
 
-`--theme` applies a token theme after the foundation stylesheet: a packaged preset (`carbon`, `paper`) or any `.css` file of token overrides (for example a product design-system bridge). The stylesheet is written to `aliencn-theme.css` next to the foundation, recorded in `aliencn.json`, checked by `doctor`, and swapped by running `init --theme <other>` again; user customizations to the theme file are preserved on ordinary re-init.
+`--framework static` opts a plain site (no React) into the registry; it is never auto-detected. Static projects consume the framework-agnostic families, such as `aliencn add motion`, and `doctor` does not require React for them.
+
+`--theme` applies a token theme after the foundation stylesheet: a packaged preset (`carbon`, `paper`, `kya-os`) or any `.css` file of token overrides (for example a product design-system bridge). The stylesheet is written to `aliencn-theme.css` next to the foundation, recorded in `aliencn.json`, checked by `doctor`, and swapped by running `init --theme <other>` again; user customizations to the theme file are preserved on ordinary re-init. The `kya-os` preset ships the KYA-OS light/dark token layer: light tokens on `:root`, dark tokens under `prefers-color-scheme` and `data-theme` hooks, toggled by setting `data-theme` on `document.documentElement`.
 
 Cancelling the interactive confirmation exits with status 1.
 
@@ -22,6 +24,8 @@ A declared dependency whose version range cannot satisfy a template requirement 
 
 TypeScript projects also receive interim ambient declaration files (`space-types.d.ts`, `alien-types.d.ts`) with the experiential components, because the published `@alienkitty` packages do not ship their own types yet.
 Delete those files once upstream releases include type declarations.
+
+The `motion` family installs the vendored KYA-OS vanilla modules byte-for-byte (plus sibling `.d.ts` shims in TypeScript projects); `motion-react` layers the React bindings on top.
 
 Options: `--all`, `--cwd`, `--path`, `--yes`, `--overwrite`, `--skip-install`, `--dry-run`, `--set`.
 

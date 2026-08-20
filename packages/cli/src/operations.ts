@@ -27,7 +27,9 @@ import type {
   DiffOptions,
   DoctorCheck,
   DoctorReport,
+  Framework,
   InitOptions,
+  Language,
   ListOptions,
   PackageManager,
   PlannedFile,
@@ -86,7 +88,7 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
         config: existing,
         configPath: getConfigPath(root),
         writes: { created: [], overwritten: [], skipped: [CONFIG_FILE] },
-        packageManager: (await detectProject(root)).packageManager
+        packageManager: (await detectProject(root, detectionOverrides(existing))).packageManager
       };
     }
 
@@ -100,7 +102,7 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
         config,
         configPath: getConfigPath(root),
         writes: emptyWrites(),
-        packageManager: (await detectProject(root)).packageManager,
+        packageManager: (await detectProject(root, detectionOverrides(config))).packageManager,
         themePath: themed.relativePath,
         plan: planned
       };
@@ -111,7 +113,7 @@ export async function initProject(options: InitOptions = {}): Promise<InitResult
       config,
       configPath: getConfigPath(root),
       writes,
-      packageManager: (await detectProject(root)).packageManager,
+      packageManager: (await detectProject(root, detectionOverrides(config))).packageManager,
       themePath: themed.relativePath
     };
   }
@@ -172,6 +174,16 @@ async function readConfigTolerant(root: string): Promise<AliencnConfig | null> {
   }
 }
 
+/**
+ * A recorded configuration outranks re-detection: a `static` project has no
+ * React marker to detect, so its config is the only source of truth.
+ */
+function detectionOverrides(
+  config: AliencnConfig | null
+): { framework?: Framework; language?: Language } {
+  return config ? { framework: config.framework, language: config.language } : {};
+}
+
 function themePath(config: AliencnConfig): string {
   return path.posix.join(path.posix.dirname(config.paths.styles), THEME_FILE);
 }
@@ -211,7 +223,7 @@ export async function addComponents(
     }
   }
 
-  const project = await detectProject(root);
+  const project = await detectProject(root, detectionOverrides(config));
   const packageJson = await readPackageJson(root);
   const packages = missingPackages(
     packageJson,
@@ -302,14 +314,20 @@ export async function doctor(options: ListOptions = {}): Promise<DoctorReport> {
   let packageJson: PackageJson | null = null;
 
   try {
-    const project = await detectProject(root);
+    const project = await detectProject(root, detectionOverrides(await readConfigTolerant(root)));
     packageJson = project.packageJson;
     checks.push({
       name: 'project',
       status: 'pass',
       message: `${project.framework} / ${project.language} / ${project.packageManager}`
     });
-    if (!('react' in {
+    if (project.framework === 'static') {
+      checks.push({
+        name: 'react',
+        status: 'pass',
+        message: 'Static framework: React is not required.'
+      });
+    } else if (!('react' in {
       ...project.packageJson.dependencies,
       ...project.packageJson.devDependencies,
       ...project.packageJson.peerDependencies

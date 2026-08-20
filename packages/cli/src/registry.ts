@@ -1,5 +1,27 @@
 import { AliencnError } from './errors.js';
-import type { Language, RegistryItem } from './types.js';
+import type { Language, RegistryFile, RegistryItem } from './types.js';
+
+/**
+ * The vendored KYA-OS motion modules: framework-agnostic vanilla ES modules
+ * copied byte-for-byte so every KYA-OS site, Next.js or static, runs the same
+ * bytes. Provenance lives in templates/registry/motion/README.md.
+ */
+const MOTION_MODULES: readonly string[] = [
+  'UIUtils',
+  'Title',
+  'GlitchText',
+  'SmoothScroll',
+  'PageTransition'
+];
+
+function motionModuleFile(module: string, extension: string, verbatim: boolean): RegistryFile {
+  const file: RegistryFile = {
+    source: `motion/${module}.${extension}`,
+    target: `motion/${module}.${extension}`,
+    location: 'components'
+  };
+  return verbatim ? { ...file, verbatim } : file;
+}
 
 const foundation: readonly RegistryItem[] = [
   {
@@ -52,6 +74,18 @@ const foundation: readonly RegistryItem[] = [
     files: [{ source: 'alien-types.d.ts', target: 'alien-types.d.ts', location: 'components' }],
     registryDependencies: [],
     dependencies: { '@types/three': '^0.185.1' }
+  },
+  {
+    name: 'motion-types',
+    title: 'KYA-OS motion ambient types',
+    description:
+      'Interim sibling declarations for the vendored KYA-OS motion modules, which are plain JavaScript.',
+    category: 'foundation',
+    hidden: true,
+    languages: ['ts'],
+    files: MOTION_MODULES.map((module) => motionModuleFile(module, 'd.ts', false)),
+    registryDependencies: [],
+    dependencies: {}
   }
 ];
 
@@ -171,7 +205,35 @@ const experience: readonly RegistryItem[] = [
   }
 ];
 
-export const registry: readonly RegistryItem[] = [...foundation, ...dashboard, ...experience];
+const motion: readonly RegistryItem[] = [
+  {
+    name: 'motion',
+    title: 'KYA-OS motion',
+    description:
+      'The vendored KYA-OS motion family: title decrypt reveals, glitch text, smooth scroll skew, and page transitions as dependency-free vanilla ES modules copied byte-for-byte.',
+    category: 'motion',
+    files: MOTION_MODULES.map((module) => motionModuleFile(module, 'js', true)),
+    registryDependencies: ['motion-types'],
+    dependencies: {}
+  },
+  {
+    name: 'motion-react',
+    title: 'KYA-OS motion for React',
+    description:
+      'Thin React bindings (TitleReveal, usePageTransition) over the vendored vanilla motion modules; no animation logic is duplicated.',
+    category: 'motion',
+    files: [{ source: 'motion-react.tsx', target: 'motion-react.tsx', location: 'components' }],
+    registryDependencies: ['motion'],
+    dependencies: {}
+  }
+];
+
+export const registry: readonly RegistryItem[] = [
+  ...foundation,
+  ...dashboard,
+  ...experience,
+  ...motion
+];
 const registryByName = new Map(registry.map((item) => [item.name, item]));
 
 export function getRegistryItem(name: string): RegistryItem {

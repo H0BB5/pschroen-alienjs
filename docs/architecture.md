@@ -4,7 +4,7 @@ Aliencn is a source-first registry. It copies small, reviewable components into 
 
 ## Package boundary
 
-The publishable package is `packages/cli` and is released as unscoped `aliencn`. Both `aliencn` and the compatibility alias `alien` point to `dist/bin.js`. `dist/index.js` exposes the same operations as a library without terminating the host process.
+The publishable package is `packages/cli` and is released as `@kya-os/aliencn`. Both the `aliencn` binary and the compatibility alias `alien` point to `dist/bin.js`. `dist/index.js` exposes the same operations as a library without terminating the host process.
 
 The previous `@hobbs/alien-core` fork was intentionally removed. Maintaining a second implementation of `Interface`, tweening, math, and events created drift and obscured upstream authorship. Registry components now declare `@alienkitty/space.js`, `@alienkitty/alien.js`, and `three` only where they are needed.
 
@@ -15,6 +15,7 @@ The previous `@hobbs/alien-core` fork was intentionally removed. Maintaining a s
 3. Registry resolution performs a topological walk over registry dependencies.
 4. One canonical TS/TSX template is rendered with project imports.
 5. JavaScript projects receive a TypeScript `transpileModule` transform of that same source.
+   Files declared `verbatim` (the vendored motion family) skip every transform and are copied byte-for-byte in both languages.
 6. A write plan classifies each file as create, identical, preserve, conflict, or overwrite.
 7. Missing third-party packages are installed with argument arrays and `shell: false`.
 
@@ -33,7 +34,7 @@ This separation lets tests call project operations directly and makes the execut
 
 ## Registry design
 
-Registry entries contain metadata, canonical source files, output locations, registry dependencies, and package dependencies. Hidden foundation entries provide CSS and the `cn` helper. Public entries are grouped into dashboard and experiential components.
+Registry entries contain metadata, canonical source files, output locations, registry dependencies, and package dependencies. Hidden foundation entries provide CSS, the `cn` helper, and interim ambient type shims. Public entries are grouped into dashboard, experiential, and motion components. Motion templates under `templates/registry/motion/` are vendored byte-for-byte from `kya-os-site` (provenance in that directory's README) and are marked `verbatim` so installs and diffs treat them as opaque bytes.
 
 Adding an entry requires:
 
