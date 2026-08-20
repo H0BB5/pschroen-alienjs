@@ -35,7 +35,16 @@ import { Sheet, SheetRow, SheetSection } from '@/components/aliencn/sheet';
 import { Skeleton } from '@/components/aliencn/skeleton';
 import { Switch } from '@/components/aliencn/switch';
 import { Tabs } from '@/components/aliencn/tabs';
+import { TitleReveal } from '@/components/aliencn/motion-react';
 import { getRegistryEntry, REGISTRY, registryNumber } from '@/lib/registry-manifest';
+import type { RegistryCategory } from '@/lib/registry-manifest';
+
+const CATEGORY_EYEBROWS: Record<RegistryCategory, string> = {
+  dashboard: 'DASHBOARD UNIT',
+  experience: 'EXPERIENTIAL UNIT',
+  motion: 'MOTION UNIT',
+  theme: 'THEME UNIT'
+};
 
 export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX.Element | null {
   const entry = getRegistryEntry(slug);
@@ -93,7 +102,7 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
 
   const previous = REGISTRY[(index + REGISTRY.length - 1) % REGISTRY.length] ?? entry;
   const next = REGISTRY[(index + 1) % REGISTRY.length] ?? entry;
-  const install = `npx aliencn add ${entry.slug}`;
+  const install = entry.install ?? `npx @kya-os/aliencn add ${entry.slug}`;
 
   return (
     <main className="catalog-shell detail-shell">
@@ -115,7 +124,7 @@ export function ComponentDetail({ slug }: Readonly<{ slug: string }>): React.JSX
       <article className="detail-body">
         <header className="detail-head">
           <p className="catalog-eyebrow detail-head__eyebrow">
-            <DecodeText key={`${entry.slug}-kind`} text={entry.category === 'experience' ? 'EXPERIENTIAL UNIT' : 'DASHBOARD UNIT'} />
+            <DecodeText key={`${entry.slug}-kind`} text={CATEGORY_EYEBROWS[entry.category]} />
             <Badge tone={entry.status === 'stable' ? 'success' : 'info'}>{entry.status}</Badge>
           </p>
           <h1 className="detail-title" style={{ viewTransitionName: `comp-${entry.slug}` }}>
@@ -409,6 +418,18 @@ function UnitDemo({ slug }: Readonly<{ slug: string }>): React.JSX.Element {
         <div className="detail-demo-rail">
           <SectionRailPreview />
         </div>
+      );
+    case 'motion':
+      return <TitleReveal className="detail-demo-decode" text="KYA-OS MOTION LAYER" />;
+    case 'motion-react':
+      return <TitleReveal className="detail-demo-decode" text="SAME BYTES, REACT SKIN" />;
+    case 'kya-os-theme':
+      return (
+        <p className="detail-demo-note">
+          Token-layer preset written by init --theme kya-os: light tokens on :root,
+          dark tokens under prefers-color-scheme and data-theme hooks. Set data-theme
+          on documentElement to force a theme; remove it to follow the OS.
+        </p>
       );
     default:
       return <p>No bench is registered for this unit.</p>;

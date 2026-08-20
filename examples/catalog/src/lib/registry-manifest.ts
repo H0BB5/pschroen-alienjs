@@ -1,4 +1,4 @@
-export type RegistryCategory = 'dashboard' | 'experience';
+export type RegistryCategory = 'dashboard' | 'experience' | 'motion' | 'theme';
 export type RegistryStatus = 'stable' | 'preview';
 
 export interface RegistryEntry {
@@ -11,6 +11,8 @@ export interface RegistryEntry {
   dependencies: readonly string[];
   registryDependencies: readonly string[];
   code: string;
+  /** Install command override; defaults to `npx @kya-os/aliencn add <slug>`. */
+  install?: string;
 }
 
 export const REGISTRY: readonly RegistryEntry[] = [
@@ -321,6 +323,43 @@ export const REGISTRY: readonly RegistryEntry[] = [
     dependencies: ['@alienkitty/alien.js', 'three'],
     registryDependencies: ['styles', 'cn'],
     code: "import { ShaderCanvas } from '@/components/aliencn/shader-canvas';\n\n<ShaderCanvas label=\"Animated spectral field\" speed={0.42} intensity={0.92} />"
+  },
+  {
+    slug: 'motion',
+    name: 'KYA-OS motion',
+    category: 'motion',
+    status: 'stable',
+    description:
+      'The vendored KYA-OS motion layer: title decrypt reveals, glitch text, smooth scroll skew, and page transitions as five dependency-free vanilla ES modules.',
+    contract: 'Copied byte-for-byte; Next.js and static sites run identical bytes; diff is a byte gate.',
+    dependencies: [],
+    registryDependencies: ['motion-types'],
+    code: "import { initTitles } from './components/aliencn/motion/Title.js';\n\n// <h1 data-title-reveal>KYA-OS</h1>\ninitTitles();"
+  },
+  {
+    slug: 'motion-react',
+    name: 'Motion for React',
+    category: 'motion',
+    status: 'stable',
+    description:
+      'Thin React bindings over the vendored motion modules: a TitleReveal component and a usePageTransition hook.',
+    contract: 'No duplicated animation logic; real text for screen readers; static under reduced motion.',
+    dependencies: [],
+    registryDependencies: ['motion'],
+    code: "import { TitleReveal } from '@/components/aliencn/motion-react';\n\n<TitleReveal text=\"SPECTRAL LINK STABLE\" />"
+  },
+  {
+    slug: 'kya-os-theme',
+    name: 'KYA-OS theme',
+    category: 'theme',
+    status: 'stable',
+    description:
+      'The KYA-OS light/dark token layer as a packaged theme preset: light tokens on :root, dark tokens under prefers-color-scheme and data-theme hooks.',
+    contract: 'Tokens only; set data-theme on documentElement to force a theme, remove it to follow the OS.',
+    dependencies: [],
+    registryDependencies: ['styles'],
+    code: "/* aliencn init --theme kya-os writes aliencn-theme.css */\nimport './aliencn.css';\nimport './aliencn-theme.css';\n\n// Toggle contract:\ndocument.documentElement.setAttribute('data-theme', 'dark');",
+    install: 'npx @kya-os/aliencn init --theme kya-os'
   }
 ] as const;
 
