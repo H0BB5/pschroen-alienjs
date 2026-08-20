@@ -35,11 +35,24 @@ try {
     'templates/registry/shader-canvas.tsx',
     'templates/registry/scroll-director.tsx',
     'templates/registry/sheet.tsx',
+    'templates/registry/motion/README.md',
+    'templates/registry/motion/UIUtils.js',
+    'templates/registry/motion/UIUtils.d.ts',
+    'templates/registry/motion/Title.js',
+    'templates/registry/motion/Title.d.ts',
+    'templates/registry/motion/GlitchText.js',
+    'templates/registry/motion/GlitchText.d.ts',
+    'templates/registry/motion/SmoothScroll.js',
+    'templates/registry/motion/SmoothScroll.d.ts',
+    'templates/registry/motion/PageTransition.js',
+    'templates/registry/motion/PageTransition.d.ts',
+    'templates/registry/motion-react.tsx',
     'templates/registry/space-types.d.ts',
     'templates/registry/ticker.tsx',
     'templates/registry/toast.tsx',
     'templates/registry/tooltip.tsx',
     'templates/themes/carbon.css',
+    'templates/themes/kya-os.css',
     'templates/themes/paper.css'
   ];
   const missing = required.filter((file) => !paths.has(file));
@@ -65,7 +78,7 @@ try {
     { cwd: consumer, stdio: 'pipe' }
   );
 
-  const installedRoot = path.join(consumer, 'node_modules', 'aliencn');
+  const installedRoot = path.join(consumer, 'node_modules', '@kya-os', 'aliencn');
   const installedSchema = JSON.parse(
     await readFile(path.join(installedRoot, 'schema.json'), 'utf8')
   );
@@ -86,7 +99,7 @@ try {
     [
       '--input-type=module',
       '-e',
-      "const api = await import('aliencn'); if (typeof api.addComponents !== 'function' || typeof api.AliencnError !== 'function') throw new Error('library exports missing');"
+      "const api = await import('@kya-os/aliencn'); if (typeof api.addComponents !== 'function' || typeof api.AliencnError !== 'function') throw new Error('library exports missing');"
     ],
     { cwd: consumer, stdio: 'pipe' }
   );
@@ -124,8 +137,27 @@ try {
     throw new Error('Installed tarball failed to resolve and transform registry templates.');
   }
 
+  execFileSync(
+    process.execPath,
+    [installedBin, 'add', 'motion', '--cwd', project, '--yes', '--skip-install'],
+    { cwd: consumer, stdio: 'pipe' }
+  );
+  for (const module of ['UIUtils', 'Title', 'GlitchText', 'SmoothScroll', 'PageTransition']) {
+    const installed = await readFile(
+      path.join(project, 'src', 'components', 'aliencn', 'motion', `${module}.js`),
+      'utf8'
+    );
+    const template = await readFile(
+      path.join(installedRoot, 'templates', 'registry', 'motion', `${module}.js`),
+      'utf8'
+    );
+    if (installed !== template) {
+      throw new Error(`Verbatim motion module ${module}.js drifted from its packed template.`);
+    }
+  }
+
   console.log(
-    `Validated aliencn@${manifest.version}: ${paths.size} files, real tarball install, binary, library, and registry.`
+    `Validated @kya-os/aliencn@${manifest.version}: ${paths.size} files, real tarball install, binary, library, and registry.`
   );
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
