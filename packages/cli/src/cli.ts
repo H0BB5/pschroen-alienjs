@@ -89,7 +89,12 @@ export function createProgram(io: CliIO = defaultIO): Command {
     .option('--cwd <path>', 'Project directory', process.cwd())
     .option('--path <path>', 'Component output directory')
     .addOption(
-      new Option('--framework <framework>', 'Framework override').choices(['next', 'vite', 'react'])
+      new Option('--framework <framework>', 'Framework override').choices([
+        'next',
+        'vite',
+        'react',
+        'static'
+      ])
     )
     .option('--theme <name|path>', 'Apply a token theme preset (carbon, paper) or a custom .css file')
     .option('--typescript', 'Force TypeScript output')
@@ -325,7 +330,9 @@ function parseSetOptions(entries: readonly string[]): Record<string, string> {
 }
 
 function parseFramework(value: string): Framework {
-  if (value === 'next' || value === 'vite' || value === 'react') return value;
+  if (value === 'next' || value === 'vite' || value === 'react' || value === 'static') {
+    return value;
+  }
   throw new AliencnError('INVALID_ARGUMENT', `Unsupported framework "${value}".`);
 }
 

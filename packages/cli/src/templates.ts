@@ -32,7 +32,8 @@ export async function renderRegistryItems(
   for (const item of items) {
     if (item.languages && !item.languages.includes(config.language)) continue;
     for (const file of item.files) {
-      const target = outputTarget(config.language, file.target);
+      const verbatim = file.verbatim ?? false;
+      const target = verbatim ? file.target : outputTarget(config.language, file.target);
       const relativePath = targetPath(config, file, target, componentPathOverride);
       const absolutePath = resolveWithinRoot(root, relativePath, 'Registry output path');
       const sourcePath = path.join(templateRoot, file.source);
@@ -49,17 +50,22 @@ export async function renderRegistryItems(
         );
       }
 
-      content = replaceImports(content, root, config, absolutePath);
-      content = applyItemOptions(content, item, optionOverrides);
-      if (config.language === 'js' && /\.[cm]?tsx?$/u.test(file.source)) {
-        content = transpileJavaScript(content, file.source);
+      // Verbatim files are vendored byte-for-byte: no import rewriting,
+      // option templating, transpilation, or newline normalization.
+      if (!verbatim) {
+        content = replaceImports(content, root, config, absolutePath);
+        content = applyItemOptions(content, item, optionOverrides);
+        if (config.language === 'js' && /\.[cm]?tsx?$/u.test(file.source)) {
+          content = transpileJavaScript(content, file.source);
+        }
+        content = ensureTrailingNewline(content);
       }
 
       rendered.push({
         item: item.name,
         relativePath: toPosix(relativePath),
         absolutePath,
-        content: ensureTrailingNewline(content),
+        content,
         preserve: file.preserve ?? false
       });
     }

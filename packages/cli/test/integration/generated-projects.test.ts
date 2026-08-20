@@ -10,6 +10,15 @@ import { publicRegistryItems } from '../../src/registry.js';
 import { copyFixture, packageDirectory, removeFixture } from '../helpers.js';
 
 const fixtures: string[] = [];
+
+// Items that ship a single `<name>.tsx` module get a synthetic import per
+// item below. The vendored motion family is directory-shaped vanilla JS; its
+// files are exercised through the motion-react wrapper's relative imports.
+const singleModuleItems = () =>
+  publicRegistryItems().filter((item) =>
+    item.files.some((file) => file.target === `${item.name}.tsx`)
+  );
+
 const localSpaceRoot = path.resolve(packageDirectory(), '..', '..', '..', 'space.js');
 const localAlienRoot = path.resolve(packageDirectory(), '..', '..', '..', 'alien.js');
 const hasLocalTypedUpstreams =
@@ -31,13 +40,13 @@ describe('generated projects', () => {
     expect(result.stderr).toBe('');
     expect(result.code, result.stdout || result.stderr).toBe(0);
 
-    const imports = publicRegistryItems()
+    const imports = singleModuleItems()
       .map(
         (item, index) =>
           `import * as component${index} from '@/components/aliencn/${item.name}';`
       )
       .join('\n');
-    const references = publicRegistryItems()
+    const references = singleModuleItems()
       .map((_item, index) => `component${index}`)
       .join(', ');
     await writeFile(
@@ -75,13 +84,13 @@ describe('generated projects', () => {
     await initProject({ cwd: fixture, yes: true, skipInstall: true });
     await addComponents([], { cwd: fixture, all: true, yes: true, skipInstall: true });
 
-    const imports = publicRegistryItems()
+    const imports = singleModuleItems()
       .map(
         (item, index) =>
           `import * as component${index} from './components/aliencn/${item.name}.jsx';`
       )
       .join('\n');
-    const references = publicRegistryItems()
+    const references = singleModuleItems()
       .map((_item, index) => `component${index}`)
       .join(', ');
     await writeFile(
@@ -90,7 +99,7 @@ describe('generated projects', () => {
       'utf8'
     );
 
-    for (const item of publicRegistryItems()) {
+    for (const item of singleModuleItems()) {
       const source = await readFile(
         path.join(fixture, 'src', 'components', 'aliencn', `${item.name}.jsx`),
         'utf8'

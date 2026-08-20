@@ -43,9 +43,26 @@ describe('registry graph', () => {
         'section-rail',
         'panel',
         'magnetic',
-        'shader-canvas'
+        'shader-canvas',
+        'motion',
+        'motion-react'
       ])
     );
+  });
+
+  it('resolves the motion family with its type shims before the wrapper', () => {
+    const items = resolveRegistryItems(['motion-react']);
+    expect(items.map((item) => item.name)).toEqual(['motion-types', 'motion', 'motion-react']);
+    expect(collectPackageDependencies(items)).toEqual({});
+  });
+
+  it('marks every vendored motion module verbatim and keeps the shims non-verbatim', () => {
+    const motion = resolveRegistryItems(['motion']).find((item) => item.name === 'motion');
+    expect(motion?.files.length).toBe(5);
+    expect(motion?.files.every((file) => file.verbatim === true)).toBe(true);
+    const shims = resolveRegistryItems(['motion']).find((item) => item.name === 'motion-types');
+    expect(shims?.files.length).toBe(5);
+    expect(shims?.files.every((file) => file.verbatim !== true)).toBe(true);
   });
 
   it('collects official upstream dependencies without a copied runtime', () => {

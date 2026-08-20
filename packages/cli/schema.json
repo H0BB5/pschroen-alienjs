@@ -14,7 +14,7 @@
       "const": 1
     },
     "framework": {
-      "enum": ["next", "vite", "react"]
+      "enum": ["next", "vite", "react", "static"]
     },
     "language": {
       "enum": ["ts", "js"]
