@@ -1,0 +1,79 @@
+/* Aliencn theme preset: kya-os.
+   The KYA-OS house token layer, ported from the community hub's theme module
+   (kya-os-usergroup-wt-hub, site/lib/theme.mjs, commit
+   416abfac27fbfabddebd97f02436db46a43d2e39). Tokens only; site-specific
+   component CSS stays in the consuming site.
+
+   Theming model:
+   - :root defines the LIGHT tokens; no OS preference means light.
+   - @media (prefers-color-scheme: dark) redefines them under
+     :root:not([data-theme="light"]), so the OS preference flips the page but
+     an explicit data-theme="light" attribute wins.
+   - :root[data-theme="dark"] carries the same dark tokens, so a toggle forces
+     either theme by setting one attribute.
+
+   Toggle contract: set data-theme="light" or data-theme="dark" on
+   document.documentElement to force a theme; remove the attribute to follow
+   the OS preference. color-scheme follows the active tokens so form controls
+   and scrollbars match.
+
+   These tokens are the KYA-OS site namespace (--page, --ink, ...). They ride
+   alongside the --aliencn-* foundation without overriding it. */
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11,11,11,.10);
+  --accent: #2a78d6;
+  --accent-deep: #1c5cab;
+  --good: #0ca30c;
+  --good-ink: #006300;
+  --warning: #fab219;
+  --warning-ink: #8a5f00;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Keep both dark blocks identical; upstream emits them from one template
+   string precisely so they can never drift. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,.10);
+    --accent: #3987e5;
+    --accent-deep: #86b6ef;
+    --good: #0ca30c;
+    --good-ink: #0ca30c;
+    --warning: #fab219;
+    --warning-ink: #fab219;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255,255,255,.10);
+  --accent: #3987e5;
+  --accent-deep: #86b6ef;
+  --good: #0ca30c;
+  --good-ink: #0ca30c;
+  --warning: #fab219;
+  --warning-ink: #fab219;
+}
